@@ -7,6 +7,8 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import UserProfile from './pages/UserProfile';
+import PaymentSelect from './pages/PaymentSelect';
+import PaymentInfo from './pages/PaymentInfo';
 
 import './App.css';
 
@@ -23,6 +25,12 @@ function App() {
         
         {/* Halaman Profil (Informasi Dasar) */}
         <Route path="/profile" element={<UserProfile />} /> {/* <--- 2. Tambah Route */}
+
+        {/* Route Baru untuk Payment */}
+        <Route path="/payment/select" element={<PaymentSelect />} />
+
+        {/* Route Tahap 2 (BARU) */}
+        <Route path="/payment/info" element={<PaymentInfo />} />
       </Routes>
     </Router>
   );
