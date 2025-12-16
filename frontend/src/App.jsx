@@ -12,6 +12,7 @@ import PaymentInfo from './pages/PaymentInfo';
 import PaymentConfirmation from './pages/PaymentConfirmation';
 import PaymentCheckout from './pages/PaymentCheckout';
 import PaymentBayar from './pages/PaymentBayar';
+import EventDetail from './pages/EventDetail';
 
 import './App.css';
 
@@ -40,6 +41,8 @@ function App() {
         <Route path="/payment/checkout" element={<PaymentCheckout />} />
 
         <Route path="/payment/bayar" element={<PaymentBayar />} />
+
+        <Route path="/event/detail" element={<EventDetail />} />
       </Routes>
     </Router>
   );
