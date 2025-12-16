@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoImg from '../assets/logo.png'; 
+import '../App.css'; 
 
 const Navbar = ({ user }) => {
   const navigate = useNavigate();
@@ -12,6 +13,17 @@ const Navbar = ({ user }) => {
   const handleLogout = () => {
     setIsOpen(false);
     navigate('/login');
+  };
+
+  // Navigasi ke Tab Pengaturan
+  const handleGoToSettings = () => {
+    setIsOpen(false);
+    navigate('/profile', { state: { defaultTab: 'settings' } });
+  };
+
+  const handleGoToProfile = () => {
+    setIsOpen(false);
+    navigate('/profile', { state: { defaultTab: 'profile' } });
   };
 
   useEffect(() => {
@@ -42,7 +54,6 @@ const Navbar = ({ user }) => {
         {/* MENU KANAN */}
         <div style={styles.menuRight}>
           {user ? (
-            // --- SUDAH LOGIN (Profile Dropdown) ---
             <div ref={dropdownRef} style={{ position: 'relative' }}>
                 <div style={styles.profileArea} onClick={toggleDropdown}>
                     <div style={{textAlign: 'right', marginRight: '12px'}}>
@@ -52,15 +63,18 @@ const Navbar = ({ user }) => {
                     <div style={styles.avatar}>{user.name.charAt(0)}</div>
                 </div>
 
-                {/* Dropdown Menu (Menggunakan Class CSS agar Hover Jalan) */}
                 {isOpen && (
                   <div className="dropdown-menu">
-                    <div className="dropdown-item" onClick={() => navigate('/profile')}>
+                    {/* Update onClick di sini */}
+                    <div className="dropdown-item" onClick={handleGoToProfile}>
                       📄 Informasi Dasar
                     </div>
-                    <div className="dropdown-item">
+                    
+                    {/* Update onClick di sini */}
+                    <div className="dropdown-item" onClick={handleGoToSettings}>
                       ⚙️ Pengaturan
                     </div>
+                    
                     <div style={{height: '1px', background: '#374151', margin: '4px 0'}}></div>
                     <div className="dropdown-item" onClick={handleLogout} style={{color: '#EF4444'}}>
                       🚪 Keluar
@@ -69,7 +83,6 @@ const Navbar = ({ user }) => {
                 )}
             </div>
           ) : (
-            // --- BELUM LOGIN (Tombol) ---
             <div style={{display: 'flex', gap: '10px'}}>
               <button className="btn btn-outline" onClick={() => navigate('/login')}>
                 Login
@@ -85,14 +98,8 @@ const Navbar = ({ user }) => {
   );
 };
 
-// Style Khusus Layout (Warna background & hover dipindah ke CSS)
 const styles = {
-  nav: {
-    backgroundColor: '#0B1120',
-    padding: '15px 0',
-    borderBottom: '1px solid #1f2937',
-    position: 'sticky', top: 0, zIndex: 100
-  },
+  nav: { backgroundColor: '#0B1120', padding: '15px 0', borderBottom: '1px solid #1f2937', position: 'sticky', top: 0, zIndex: 100 },
   container: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
   logo: { display: 'flex', alignItems: 'center', fontSize: '24px', fontWeight: 'bold', color: 'white', gap: '10px', cursor: 'pointer' },
   logoImage: { height: '25px', width: 'auto' },
@@ -100,13 +107,7 @@ const styles = {
   input: { width: '100%', maxWidth: '400px', padding: '10px 15px', borderRadius: '20px', border: 'none', outline: 'none' },
   menuRight: { display: 'flex', alignItems: 'center' },
   profileArea: { display: 'flex', alignItems: 'center', color: 'white', cursor: 'pointer', userSelect: 'none' },
-  avatar: {
-      width: '40px', height: '40px',
-      backgroundColor: '#F59E0B', color: 'black',
-      borderRadius: '50%',
-      display: 'flex', justifyContent: 'center', alignItems: 'center',
-      fontWeight: 'bold', fontSize: '18px'
-  }
+  avatar: { width: '40px', height: '40px', backgroundColor: '#F59E0B', color: 'black', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: '18px' }
 };
 
 export default Navbar;

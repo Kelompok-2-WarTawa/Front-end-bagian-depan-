@@ -136,10 +136,10 @@ const UserDashboard = () => {
 };
 
 const styles = {
-  // HERO BANNER STYLE (Diupdate: Tinggi dikurangi sedikit biar proporsional)
+  // HERO BANNER STYLE
   heroBanner: {
     width: '100%',
-    height: '250px', // Sedikit lebih pendek karena teksnya sudah turun
+    height: '250px',
     backgroundImage: 'linear-gradient(to bottom, rgba(11, 17, 32, 0.2), #0B1120), url(https://placehold.co/1200x400/222/F59E0B?text=Dashboard+Banner)',
     backgroundSize: 'cover',
     backgroundPosition: 'center',

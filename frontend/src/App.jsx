@@ -1,12 +1,14 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// Import halaman-halaman
+// Import halaman
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
-import UserProfile from './pages/UserProfile'; // <--- 1. Import ini
+import UserProfile from './pages/UserProfile';
+
+import './App.css';
 
 function App() {
   return (
@@ -15,10 +17,12 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        
+        {/* Halaman Dashboard (Tiket Saya) */}
         <Route path="/dashboard" element={<UserDashboard />} />
         
-        {/* 2. Tambahkan Route Profile */}
-        <Route path="/profile" element={<UserProfile />} /> 
+        {/* Halaman Profil (Informasi Dasar) */}
+        <Route path="/profile" element={<UserProfile />} /> {/* <--- 2. Tambah Route */}
       </Routes>
     </Router>
   );

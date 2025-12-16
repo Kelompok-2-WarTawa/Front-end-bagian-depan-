@@ -7,7 +7,6 @@
   --text-white: #ffffff;
 }
 
-/* Reset CSS agar konsisten */
 * {
   box-sizing: border-box;
 }
@@ -22,7 +21,6 @@ body {
   overflow-x: hidden;
 }
 
-/* PENTING: Agar aplikasi React mengambil lebar penuh */
 #root {
   width: 100%;
 }
@@ -73,7 +71,7 @@ body {
   transform: translateY(-2px);
 }
 
-/* 3. Button Navy (PENTING: Untuk "Explore More Events" di Home) */
+/* 3. Button Navy */
 .btn-navy {
   background-color: var(--brand-blue);
   color: white;
@@ -84,7 +82,7 @@ body {
   box-shadow: 0 4px 12px rgba(30, 58, 138, 0.5);
 }
 
-/* 4. Button Royal (PENTING: Untuk "Select Ticket" di EventRow) */
+/* 4. Button Royal */
 .btn-royal {
   background-color: #2563EB;
   color: white;
