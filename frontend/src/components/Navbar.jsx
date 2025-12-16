@@ -1,12 +1,20 @@
 import React from 'react';
+import logoImg from '../assets/logo.png';
 
 const Navbar = () => {
   return (
     <nav style={styles.nav}>
       <div className="container" style={styles.container}>
-        {/* LOGO */}
+        {/* 2. BAGIAN LOGO DIPERBARUI */}
         <div style={styles.logo}>
-          <span style={{color: '#F59E0B'}}>War</span>Tawa
+          <img 
+            src={logoImg} 
+            alt="WarTawa Logo" 
+            style={styles.logoImage}
+          />
+          <span>
+            <span style={{color: '#F59E0B'}}>War</span>Tawa
+          </span>
         </div>
 
         {/* SEARCH BAR */}
@@ -42,11 +50,9 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center'
   },
-  logo: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-    color: 'white',
-    cursor: 'pointer'
+  logoImage: {            
+    height: '60px', 
+    width: 'auto'
   },
   searchBox: {
     flex: 1,
