@@ -1,10 +1,12 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import EventCard from '../components/EventCard'; 
 import EventRow from '../components/EventRow';   
 import Footer from '../components/Footer';
 
 const Home = () => {
+  const navigate = useNavigate();
   
   // Data Dummy: Top Events
   const topEvents = [
@@ -75,6 +77,13 @@ const Home = () => {
           <p style={{letterSpacing: '5px', marginBottom: '10px'}}>EKRESA</p>
           <h1 style={styles.heroTitle}>CERITA ANEHKU</h1>
           <p>Sebuah pertunjukan komedi oleh Raditya Dika</p>
+          <button 
+             onClick={() => navigate('/login')}
+             className="btn btn-gold"
+             style={{marginTop: '20px'}}
+          >
+             Lihat Detail
+          </button>
         </div>
       </div>
 
@@ -86,7 +95,12 @@ const Home = () => {
             <h2 style={{fontSize: '24px', margin: 0}}>Top Events</h2>
             <p style={{color: '#9CA3AF', margin: '5px 0'}}>Event komedi terpanas minggu ini!</p>
           </div>
-          <a href="#" style={{color: '#F59E0B', textDecoration: 'none'}}>View All →</a>
+          <span 
+            onClick={() => navigate('/login')} 
+            style={{color: '#F59E0B', textDecoration: 'none', cursor: 'pointer', fontWeight: 'bold'}}
+          >
+            View All →
+          </span>
         </div>
 
         <div style={styles.grid}>
@@ -107,7 +121,11 @@ const Home = () => {
           </div>
 
           <div style={{textAlign: 'center', marginTop: '30px'}}>
-            <button className="btn btn-blue" style={{padding: '12px 30px'}}>
+            <button 
+              onClick={() => navigate('/login')}
+              className="btn btn-navy" 
+              style={{padding: '12px 30px', borderRadius: '30px'}}
+            >
               Explore More Events
             </button>
           </div>
@@ -150,7 +168,6 @@ const styles = {
     flexDirection: 'column',
     gap: '15px'
   }
-
 };
 
 export default Home;

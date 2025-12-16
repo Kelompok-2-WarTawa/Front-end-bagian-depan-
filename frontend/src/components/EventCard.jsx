@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const EventCard = ({ title, date, location, price, image }) => {
+  const navigate = useNavigate();
+
   return (
     <div style={styles.card}>
       {/* GAMBAR */}
@@ -15,7 +18,12 @@ const EventCard = ({ title, date, location, price, image }) => {
         {/* HARGA & TOMBOL */}
         <div style={styles.footer}>
           <span style={styles.price}>{price}</span>
-          <button className="btn btn-gold" style={{padding: '5px 15px'}}>
+          
+          <button 
+            onClick={() => navigate('/login')} 
+            className="btn btn-gold" 
+            style={{padding: '5px 15px'}}
+          >
             Buy Ticket
           </button>
         </div>

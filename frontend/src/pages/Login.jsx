@@ -49,7 +49,7 @@ const Login = () => {
   );
 };
 
-// Style Khusus Halaman Auth
+// Style Halaman Auth
 const styles = {
   pageContainer: {
     backgroundColor: '#0B1120',
@@ -120,7 +120,7 @@ const styles = {
     padding: '12px 15px',
     borderRadius: '6px',
     border: 'none',
-    backgroundColor: '#D1D5DB', // Warna abu-abu seperti di desain
+    backgroundColor: '#D1D5DB', 
     fontSize: '16px',
     outline: 'none',
     boxSizing: 'border-box'

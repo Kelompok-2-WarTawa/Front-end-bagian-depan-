@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const EventRow = ({ title, date, location, price, image, isAvailable }) => {
+  const navigate = useNavigate();
+
   return (
     <div style={styles.row}>
       {/* KIRI: Gambar */}
@@ -21,7 +24,15 @@ const EventRow = ({ title, date, location, price, image, isAvailable }) => {
       <div style={styles.action}>
         <p style={styles.priceLabel}>Start From</p>
         <h3 style={styles.price}>{price}</h3>
-        <button className="btn btn-blue">Select Ticket</button>
+        
+        {/* 3. Update Button: Tambah onClick & ClassName untuk Hover */}
+        <button 
+          onClick={() => navigate('/login')} 
+          className="btn btn-royal" 
+          style={{padding: '10px 25px'}}
+        >
+          Select Ticket
+        </button>
       </div>
     </div>
   );

@@ -3,6 +3,10 @@
   line-height: 1.5;
   font-weight: 400;
   
+  /* Definisi Warna Global */
+  --brand-gold: #F59E0B;
+  --brand-blue: #1E3A8A;
+  
   color-scheme: dark; 
 }
 
@@ -11,24 +15,25 @@ body {
   padding: 0;
   min-height: 100vh;
   width: 100%;
-  overflow-x: hidden; 
+  overflow-x: hidden;
+  background-color: #0B1120; 
 }
 
-/* Pastikan elemen root React mengambil lebar penuh */
 #root {
   width: 100%;
-  margin: 0.5;
-  padding: 0.5;
+  margin: 0;
+  padding: 0;
   text-align: left; 
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto; 
-  padding: 0 60px; 
+  padding: 0 20px; /* Sedikit disesuaikan agar tidak terlalu lebar di HP */
   box-sizing: border-box; 
 }
-/* tombol button */
+
+/* --- TOMBOL (BUTTONS) GLOBAL --- */
 .btn {
   padding: 10px 24px;
   border-radius: 8px;
@@ -40,6 +45,7 @@ body {
   display: inline-block; 
 }
 
+/* Style Outline (Garis Tepi Emas) */
 .btn-outline {
   background-color: transparent; 
   border: 2px solid var(--brand-gold); 
@@ -53,17 +59,19 @@ body {
   transform: translateY(-2px); 
 }
 
+/* Style Gold (Kuning Emas) - Default Buy Ticket */
 .btn-gold {
   background-color: var(--brand-gold);
-  color: #ffffff;
+  color: #ffffff; 
 }
 
 .btn-gold:hover {
-  background-color: #FFB02E; 
+  background-color: #D97706; /* Sedikit lebih gelap saat hover */
   box-shadow: 0 0 15px rgba(245, 158, 11, 0.7);
   transform: translateY(-2px);
 }
 
+/* Style Blue Standard */
 .btn-blue {
   background-color: var(--brand-blue);
   color: #ffffff;
@@ -74,7 +82,39 @@ body {
   box-shadow: 0 0 15px rgba(14, 54, 149, 0.6);
   transform: translateY(-2px);
 }
-/* Footer */
+
+
+/* 1. Royal Blue (Untuk tombol "Select Ticket") */
+.btn-royal {
+  background-color: #2563EB; /* Biru terang */
+  color: white;
+}
+
+.btn-royal:hover {
+  background-color: #1D4ED8;
+  box-shadow: 0 0 15px rgba(37, 99, 235, 0.6);
+  transform: translateY(-2px);
+}
+
+/* 2. Navy Blue (Untuk tombol "Explore More Events") */
+.btn-navy {
+  background-color: #1E3A8A;
+  color: white;
+}
+
+.btn-navy:hover {
+  background-color: #172554;
+  box-shadow: 0 0 15px rgba(30, 58, 138, 0.6);
+  transform: translateY(-2px);
+}
+
+/* --- FOOTER --- */
+footer a {
+  text-decoration: none;
+  color: #9CA3AF; /* Warna default link footer */
+  transition: all 0.2s ease;
+}
+
 footer a:hover {
   color: var(--brand-gold) !important;
   padding-left: 5px; 
