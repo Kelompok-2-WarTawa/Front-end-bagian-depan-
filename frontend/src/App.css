@@ -1,121 +1,128 @@
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  
-  /* Definisi Warna Global */
+  /* Variabel Warna Utama */
   --brand-gold: #F59E0B;
   --brand-blue: #1E3A8A;
-  
-  color-scheme: dark; 
+  --bg-dark: #0B1120;
+  --bg-card: #1F2937;
+  --text-white: #ffffff;
+}
+
+/* Reset CSS agar konsisten */
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   padding: 0;
+  background-color: var(--bg-dark);
+  color: var(--text-white);
+  font-family: 'Inter', system-ui, sans-serif;
   min-height: 100vh;
-  width: 100%;
   overflow-x: hidden;
-  background-color: #0B1120; 
 }
 
+/* PENTING: Agar aplikasi React mengambil lebar penuh */
 #root {
   width: 100%;
-  margin: 0;
-  padding: 0;
-  text-align: left; 
 }
 
+/* Container responsive agar konten di tengah */
 .container {
   max-width: 1200px;
-  margin: 0 auto; 
-  padding: 0 20px; /* Sedikit disesuaikan agar tidak terlalu lebar di HP */
-  box-sizing: border-box; 
+  margin: 0 auto;
+  padding: 0 20px;
+  width: 100%;
 }
 
-/* --- TOMBOL (BUTTONS) GLOBAL --- */
+/* --- TOMBOL (BUTTONS) --- */
 .btn {
   padding: 10px 24px;
   border-radius: 8px;
   border: none;
   cursor: pointer;
-  font-weight: 700; 
+  font-weight: 700;
   font-size: 14px;
-  transition: all 0.3s ease-in-out; 
-  display: inline-block; 
+  transition: all 0.2s ease-in-out;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
 }
 
-/* Style Outline (Garis Tepi Emas) */
-.btn-outline {
-  background-color: transparent; 
-  border: 2px solid var(--brand-gold); 
-  color: var(--brand-gold); 
-}
-
-.btn-outline:hover {
-  background-color: var(--brand-gold) !important; 
-  color: #000000 !important; 
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.5); 
-  transform: translateY(-2px); 
-}
-
-/* Style Gold (Kuning Emas) - Default Buy Ticket */
+/* 1. Button Gold (Untuk Register & Buy Ticket) */
 .btn-gold {
   background-color: var(--brand-gold);
-  color: #ffffff; 
+  color: white;
 }
-
 .btn-gold:hover {
-  background-color: #D97706; /* Sedikit lebih gelap saat hover */
-  box-shadow: 0 0 15px rgba(245, 158, 11, 0.7);
+  background-color: #D97706; /* Warna lebih gelap saat hover */
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+}
+
+/* 2. Button Outline (Untuk Login) */
+.btn-outline {
+  background-color: transparent;
+  border: 2px solid var(--brand-gold);
+  color: var(--brand-gold);
+}
+.btn-outline:hover {
+  background-color: var(--brand-gold);
+  color: black;
   transform: translateY(-2px);
 }
 
-/* Style Blue Standard */
-.btn-blue {
-  background-color: var(--brand-blue);
-  color: #ffffff;
-}
-
-.btn-blue:hover {
-  background-color: #1e4bb5; 
-  box-shadow: 0 0 15px rgba(14, 54, 149, 0.6);
-  transform: translateY(-2px);
-}
-
-
-/* 1. Royal Blue (Untuk tombol "Select Ticket") */
-.btn-royal {
-  background-color: #2563EB; /* Biru terang */
-  color: white;
-}
-
-.btn-royal:hover {
-  background-color: #1D4ED8;
-  box-shadow: 0 0 15px rgba(37, 99, 235, 0.6);
-  transform: translateY(-2px);
-}
-
-/* 2. Navy Blue (Untuk tombol "Explore More Events") */
+/* 3. Button Navy (PENTING: Untuk "Explore More Events" di Home) */
 .btn-navy {
-  background-color: #1E3A8A;
+  background-color: var(--brand-blue);
   color: white;
 }
-
 .btn-navy:hover {
   background-color: #172554;
-  box-shadow: 0 0 15px rgba(30, 58, 138, 0.6);
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.5);
 }
 
-/* --- FOOTER --- */
-footer a {
-  text-decoration: none;
-  color: #9CA3AF; /* Warna default link footer */
-  transition: all 0.2s ease;
+/* 4. Button Royal (PENTING: Untuk "Select Ticket" di EventRow) */
+.btn-royal {
+  background-color: #2563EB;
+  color: white;
+}
+.btn-royal:hover {
+  background-color: #1D4ED8;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.5);
 }
 
-footer a:hover {
-  color: var(--brand-gold) !important;
-  padding-left: 5px; 
+/* --- DROPDOWN MENU (PROFILE) --- */
+.dropdown-menu {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  width: 220px;
+  background-color: var(--bg-card);
+  border: 1px solid #374151;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  overflow: hidden;
+  z-index: 1000;
+  padding: 5px;
+}
+
+.dropdown-item {
+  padding: 12px 15px;
+  color: #e5e7eb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+  font-size: 14px;
+}
+
+.dropdown-item:hover {
+  background-color: #374151;
+  color: white;
 }
