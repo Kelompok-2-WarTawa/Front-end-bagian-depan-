@@ -9,6 +9,9 @@ import UserDashboard from './pages/UserDashboard';
 import UserProfile from './pages/UserProfile';
 import PaymentSelect from './pages/PaymentSelect';
 import PaymentInfo from './pages/PaymentInfo';
+import PaymentConfirmation from './pages/PaymentConfirmation';
+import PaymentCheckout from './pages/PaymentCheckout';
+import PaymentBayar from './pages/PaymentBayar';
 
 import './App.css';
 
@@ -31,6 +34,12 @@ function App() {
 
         {/* Route Tahap 2 (BARU) */}
         <Route path="/payment/info" element={<PaymentInfo />} />
+
+        <Route path="/payment/confirmation" element={<PaymentConfirmation />} />
+
+        <Route path="/payment/checkout" element={<PaymentCheckout />} />
+
+        <Route path="/payment/bayar" element={<PaymentBayar />} />
       </Routes>
     </Router>
   );
