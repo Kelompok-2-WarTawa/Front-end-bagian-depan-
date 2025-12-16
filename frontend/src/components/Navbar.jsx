@@ -1,20 +1,15 @@
 import React from 'react';
-import logoImg from '../assets/logo.png';
+import { Link, useNavigate } from 'react-router-dom'; 
 
 const Navbar = () => {
+  const navigate = useNavigate(); 
+
   return (
     <nav style={styles.nav}>
       <div className="container" style={styles.container}>
-        {/* 2. BAGIAN LOGO DIPERBARUI */}
-        <div style={styles.logo}>
-          <img 
-            src={logoImg} 
-            alt="WarTawa Logo" 
-            style={styles.logoImage}
-          />
-          <span>
-            <span style={{color: '#F59E0B'}}>War</span>Tawa
-          </span>
+        {/* LOGO */}
+        <div style={styles.logo} onClick={() => navigate('/')}>
+          <span style={{color: '#F59E0B'}}>War</span>Tawa
         </div>
 
         {/* SEARCH BAR */}
@@ -28,8 +23,20 @@ const Navbar = () => {
 
         {/* BUTTONS */}
         <div>
-          <button className="btn btn-gold" style={{marginRight: '10px'}}>Login</button>
-          <button className="btn btn-gold">Register</button>
+          <button 
+            className="btn btn-gold" 
+            style={{marginRight: '10px'}}
+            onClick={() => navigate('/login')}
+          >
+            Login
+          </button>
+          
+          <button 
+            className="btn btn-gold"
+            onClick={() => navigate('/register')}
+          >
+            Register
+          </button>
         </div>
       </div>
     </nav>
@@ -50,9 +57,11 @@ const styles = {
     justifyContent: 'space-between',
     alignItems: 'center'
   },
-  logoImage: {            
-    height: '60px', 
-    width: 'auto'
+  logo: {
+    fontSize: '24px',
+    fontWeight: 'bold',
+    color: 'white',
+    cursor: 'pointer'
   },
   searchBox: {
     flex: 1,
