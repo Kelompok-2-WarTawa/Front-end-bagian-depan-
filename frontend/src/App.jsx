@@ -7,6 +7,7 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
 import UserProfile from './pages/UserProfile';
+import EventDetail from './pages/EventDetail';
 import PaymentSelect from './pages/PaymentSelect';
 import PaymentInfo from './pages/PaymentInfo';
 import PaymentConfirmation from './pages/PaymentConfirmation';
@@ -20,6 +21,8 @@ import AdminLogin from './pages/admin/Login';
 import ManajemenEvent from './pages/admin/ManajementEvent';
 import KategoriTiket from './pages/admin/KategoriTiket.jsx';
 import Transaksi from './pages/admin/Transaksi.jsx';
+import ValidasiTiket from './pages/admin/ValidasiTiket.jsx';
+import EksporData from './pages/admin/EksporData.jsx';
 
 import './App.css';
 
@@ -38,6 +41,9 @@ function App() {
         {/* Halaman Profil (Informasi Dasar) */}
         <Route path="/profile" element={<UserProfile />} />
 
+        {/* Detail Event */}  
+        <Route path="/event/:id" element={<EventDetail />} />
+
         {/* Route untuk Payment */}
         <Route path="/payment/select" element={<PaymentSelect />} />
         <Route path="/payment/info" element={<PaymentInfo />} />
@@ -55,8 +61,9 @@ function App() {
           <Route path="events" element={<ManajemenEvent />} />
           <Route path="tickets" element={<KategoriTiket />} />    
           <Route path="transactions" element={<Transaksi />} />
+          <Route path="validation" element={<ValidasiTiket />} />
+          <Route path="export" element={<EksporData />} />
         </Route>
-
       </Routes>
     </Router>
   );
