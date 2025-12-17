@@ -1,3 +1,4 @@
+// src/components/EventCard.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -20,12 +21,14 @@ const EventCard = ({ title, date, location, price, image }) => {
           <span style={styles.price}>{price}</span>
           
           <button 
-            onClick={() => navigate('/login')} 
+            // --- BAGIAN YANG DIUBAH ---
+            onClick={() => navigate('/event/detail')} // Arahkan ke halaman Detail
             className="btn btn-gold" 
-            style={{padding: '5px 15px'}}
+            style={{padding: '5px 15px', fontSize: '13px'}}
           >
-            Buy Ticket
+            Lihat Detail
           </button>
+          
         </div>
       </div>
     </div>

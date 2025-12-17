@@ -12,6 +12,7 @@ import PaymentInfo from './pages/PaymentInfo';
 import PaymentConfirmation from './pages/PaymentConfirmation';
 import PaymentCheckout from './pages/PaymentCheckout';
 import PaymentBayar from './pages/PaymentBayar';
+import EventDetail from './pages/EventDetail';
 
 // --- IMPORT ADMIN ---
 import AdminLayout from './pages/admin/AdminLayout';
@@ -43,6 +44,7 @@ function App() {
         <Route path="/payment/checkout" element={<PaymentCheckout />} />
         <Route path="/payment/bayar" element={<PaymentBayar />} />
 
+<<<<<<< HEAD
         {/* --- ROUTE ADMIN --- */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
@@ -54,6 +56,9 @@ function App() {
           
         </Route>
 
+=======
+        <Route path="/event/detail" element={<EventDetail />} />
+>>>>>>> 5cb271cd29585aab8fda263793e6be24337f63a3
       </Routes>
     </Router>
   );
