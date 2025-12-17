@@ -12,13 +12,14 @@ import PaymentInfo from './pages/PaymentInfo';
 import PaymentConfirmation from './pages/PaymentConfirmation';
 import PaymentCheckout from './pages/PaymentCheckout';
 import PaymentBayar from './pages/PaymentBayar';
-import EventDetail from './pages/EventDetail';
 
 // --- IMPORT ADMIN ---
 import AdminLayout from './pages/admin/AdminLayout';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminLogin from './pages/admin/Login';
 import ManajemenEvent from './pages/admin/ManajementEvent';
+import KategoriTiket from './pages/admin/KategoriTiket.jsx';
+import Transaksi from './pages/admin/Transaksi.jsx';
 
 import './App.css';
 
@@ -44,21 +45,18 @@ function App() {
         <Route path="/payment/checkout" element={<PaymentCheckout />} />
         <Route path="/payment/bayar" element={<PaymentBayar />} />
 
-<<<<<<< HEAD
         {/* --- ROUTE ADMIN --- */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
-        {/* Panel Admin (Sidebar & Layout) */}
-        <Route path="/admin" element={<AdminLayout />}>
+  {/* Panel Admin (Hanya untuk halaman yang butuh Sidebar) */}
+          <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
-          {/* Rute Manajemen Event */}
+          <Route path="login" element={<AdminLogin />} />
           <Route path="events" element={<ManajemenEvent />} />
-          
+          <Route path="tickets" element={<KategoriTiket />} />    
+          <Route path="transactions" element={<Transaksi />} />
         </Route>
 
-=======
-        <Route path="/event/detail" element={<EventDetail />} />
->>>>>>> 5cb271cd29585aab8fda263793e6be24337f63a3
       </Routes>
     </Router>
   );
