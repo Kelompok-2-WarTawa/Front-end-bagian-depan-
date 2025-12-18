@@ -1,4 +1,4 @@
-// src/pages/PaymentCheckout.jsx
+// src/pages/payment/PaymentStep4.jsx
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -8,33 +8,51 @@ import { getCurrentUser } from '../utils/authStore';
 const PaymentCheckout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
   const currentUser = getCurrentUser() || { name: "Guest" };
 
-  const allData = location.state || {};
-  const { 
-    selectedCategory = '-', 
-    selectedSeats = [],     
-    totalHarga = 0, 
-    fullName = '-', 
-    idNumber = '-', 
-    phoneNumber = '-', 
-    email = '-', 
-    paymentMethod = '-' 
-  } = allData;
+  // 1. Ambil Data Estafet (Final)
+  const { eventData, ticketData, userData, paymentMethod } = location.state || {};
 
   const formatRupiah = (number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
 
+  // 2. Navigasi ke Halaman Bayar (Invoice)
   const handlePayNow = () => {
-    navigate('/payment/bayar', { state: { ...allData } });
+    navigate('/payment', { // Arahkan ke /payment (Halaman Invoice)
+        state: { 
+            // Mapping data agar sesuai dengan PaymentBayar.jsx
+            eventId: eventData.id,
+            eventName: eventData.title,
+            eventDate: eventData.date,
+            eventLocation: eventData.location,
+            
+            qtyEarly: ticketData.qty.early,
+            qtyPresale: ticketData.qty.presale,
+            qtyReguler: ticketData.qty.reguler,
+            totalHarga: ticketData.totalBasePrice,
+            priceSnapshot: ticketData.priceSnapshot,
+            selectedSeats: ticketData.selectedSeats, // Kirim kursi
+
+            fullName: userData.fullName,
+            email: userData.email,
+            phoneNumber: userData.phoneNumber,
+            idNumber: userData.idNumber,
+
+            paymentMethod: paymentMethod
+        } 
+    });
   };
+
+  if (!eventData || !ticketData || !userData || !paymentMethod) {
+      navigate('/dashboard');
+      return null;
+  }
 
   return (
     <>
       <Navbar user={currentUser} />
-      <div className="container" style={{ padding: '40px 20px' }}>
+      <div className="container" style={{ padding: '40px 20px', maxWidth: '800px', margin: '0 auto' }}>
         
-        {/* Step Indicator */}
+        {/* STEPPER */}
         <div style={styles.stepBar}>
           <div style={styles.stepItem}><span style={styles.stepCircleDone}>✓</span> Select Seat</div>
           <span style={styles.separator}>›</span>
@@ -51,12 +69,12 @@ const PaymentCheckout = () => {
           {/* EVENT INFO CARD */}
           <div style={styles.whiteCard}>
             <div style={styles.eventLayout}>
-                <img src="https://placehold.co/300x150/111/F59E0B?text=EVENT+IMG" alt="Event" style={styles.eventImg}/>
+                <img src={eventData.image} alt="Event" style={styles.eventImg}/>
                 <div style={styles.eventDetails}>
-                    <h3 style={{margin: '0 0 10px 0', fontSize: '22px'}}>Cerita Anehku</h3>
-                    <p style={styles.eventText}>📍 Sabuga ITB, Bandung</p>
-                    <p style={styles.eventText}>🕒 19.30 WIB</p>
-                    <p style={styles.eventText}>👤 {selectedSeats.length} Kursi Dipilih</p>
+                    <h3 style={{margin: '0 0 10px 0', fontSize: '22px'}}>{eventData.title}</h3>
+                    <p style={styles.eventText}>📍 {eventData.location}</p>
+                    <p style={styles.eventText}>📅 {eventData.date}</p>
+                    <p style={styles.eventText}>👤 {ticketData.selectedSeats?.length} Kursi Dipilih</p>
                 </div>
             </div>
           </div>
@@ -64,10 +82,10 @@ const PaymentCheckout = () => {
           {/* PERSONAL INFO */}
           <div style={styles.whiteCard}>
             <h3 style={styles.sectionHeader}>Personal Information</h3>
-            <div style={styles.infoRow}><span style={styles.label}>Full Name</span><span style={styles.value}>: {fullName}</span></div>
-            <div style={styles.infoRow}><span style={styles.label}>ID Number</span><span style={styles.value}>: {idNumber}</span></div>
-            <div style={styles.infoRow}><span style={styles.label}>Phone</span><span style={styles.value}>: {phoneNumber}</span></div>
-            <div style={styles.infoRow}><span style={styles.label}>Email</span><span style={styles.value}>: {email}</span></div>
+            <div style={styles.infoRow}><span style={styles.label}>Full Name</span><span style={styles.value}>: {userData.fullName}</span></div>
+            <div style={styles.infoRow}><span style={styles.label}>ID Number</span><span style={styles.value}>: {userData.idNumber}</span></div>
+            <div style={styles.infoRow}><span style={styles.label}>Phone</span><span style={styles.value}>: {userData.phoneNumber}</span></div>
+            <div style={styles.infoRow}><span style={styles.label}>Email</span><span style={styles.value}>: {userData.email}</span></div>
           </div>
 
           {/* PAYMENT SUMMARY */}
@@ -79,27 +97,35 @@ const PaymentCheckout = () => {
             </div>
           </div>
 
-          {/* PAYMENT DETAILS (UPDATE TAMPILKAN KURSI) */}
+          {/* PAYMENT DETAILS */}
           <div style={styles.summaryBox}>
-             <h3 style={{margin: '0 0 15px 0'}}>Payment details</h3>
+             <h3 style={{margin: '0 0 15px 0'}}>Payment Details</h3>
              
-             {/* Rincian Tiket */}
-             <div style={styles.summaryRow}>
-                <span style={{textTransform:'capitalize'}}>Kategori {selectedCategory}</span>
-                <span>{selectedSeats.length} x</span>
-             </div>
-             
-             {/* Daftar Kursi */}
+             {/* Rincian Tiket per Kategori */}
+             {['early', 'presale', 'reguler'].map(type => (
+                 ticketData.qty[type] > 0 && (
+                     <div key={type} style={styles.summaryRow}>
+                        <span style={{textTransform:'capitalize'}}>{type} Bird</span>
+                        <span>{ticketData.qty[type]} x</span>
+                     </div>
+                 )
+             ))}
+
+             {/* Rincian Kursi */}
              <div style={{...styles.summaryRow, color:'#555', fontSize:'13px', marginBottom:'15px', alignItems:'flex-start'}}>
                 <span>Nomor Kursi:</span>
-                <span style={{maxWidth:'150px', textAlign:'right', fontWeight:'bold'}}>{selectedSeats.join(', ')}</span>
+                <span style={{maxWidth:'200px', textAlign:'right', fontWeight:'bold', wordBreak: 'break-word'}}>
+                    {ticketData.selectedSeats?.join(', ')}
+                </span>
              </div>
 
              <hr style={{border: 'none', borderTop: '1px solid #ccc', margin: '15px 0'}}/>
+             
              <div style={{...styles.summaryRow, fontSize: '18px', fontWeight: 'bold'}}>
                 <span>TOTAL</span>
-                <span>{formatRupiah(totalHarga)}</span>
+                <span>{formatRupiah(ticketData.totalBasePrice)}</span>
              </div>
+             
              <button onClick={handlePayNow} style={styles.payButton}>Pay Now</button>
           </div>
         </div>
@@ -110,22 +136,28 @@ const PaymentCheckout = () => {
 };
 
 const styles = {
-  stepBar: { display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F59E0B', padding: '15px', borderRadius: '50px', marginBottom: '30px', color: '#553C00', flexWrap: 'wrap', maxWidth: '800px', width: '100%', margin: '0 auto 30px', gap: '15px' },
+  stepBar: { display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F59E0B', padding: '15px', borderRadius: '50px', marginBottom: '30px', color: '#553C00', flexWrap: 'wrap', width: '100%', gap: '15px' },
   stepItem: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' },
   separator: { fontSize: '24px', fontWeight: 'bold', color: '#553C00', marginTop: '-4px' },
   stepCircleActive: { width: '28px', height: '28px', backgroundColor: 'black', color: '#F59E0B', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold' },
   stepCircleDone: { width: '28px', height: '28px', backgroundColor: 'black', color: '#F59E0B', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold' },
-  mainCard: { backgroundColor: '#F59E0B', borderRadius: '16px', padding: '30px', maxWidth: '800px', margin: '0 auto', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' },
+  
+  mainCard: { backgroundColor: '#F59E0B', borderRadius: '16px', padding: '30px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' },
   pageTitle: { textAlign: 'center', color: 'white', fontSize: '28px', marginBottom: '20px', marginTop: 0 },
   whiteCard: { backgroundColor: '#FFFBEB', borderRadius: '12px', padding: '25px', marginBottom: '20px', color: '#333' },
   sectionHeader: { margin: '0 0 15px 0', fontSize: '18px', fontWeight: 'bold', borderBottom: '1px solid #eee', paddingBottom: '10px' },
+  
   eventLayout: { display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' },
   eventImg: { width: '150px', height: '100px', borderRadius: '8px', objectFit: 'cover' },
+  eventDetails: { flex: 1 },
   eventText: { margin: '5px 0', color: '#555', fontSize: '14px' },
+  
   infoRow: { display: 'flex', marginBottom: '8px', fontSize: '15px' },
   label: { width: '140px', fontWeight: '600', color: '#444' },
   value: { flex: 1, color: '#000' },
+  
   paymentIcon: { width: '40px', height: '40px', backgroundColor: '#E0F2FE', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '20px' },
+  
   summaryBox: { backgroundColor: '#FFFBEB', borderRadius: '12px', padding: '25px', marginTop: '10px', color: '#333' },
   summaryRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '8px' },
   payButton: { width: '100%', padding: '15px', backgroundColor: '#1F2937', color: 'white', border: 'none', borderRadius: '8px', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px', transition: '0.3s' }

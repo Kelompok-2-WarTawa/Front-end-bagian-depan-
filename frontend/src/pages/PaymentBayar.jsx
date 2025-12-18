@@ -3,43 +3,45 @@ import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { saveTransaction } from '../utils/transactionStore'; 
-import { getTicketConfig } from '../utils/ticketStore';
 import { getCurrentUser } from '../utils/authStore'; // 1. Import Auth
 
 const PaymentBayar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // 2. Ambil data user yang sedang login (Hapus Sutejo)
-  // Jika tidak ada user login (guest), berikan default kosong atau guest
+  // 2. Ambil data user yang sedang login
+  // Jika tidak ada user login, gunakan default guest
   const currentUser = getCurrentUser() || { name: "Guest", email: "guest@example.com" };
 
-  // 3. AMBIL DATA DARI HALAMAN SEBELUMNYA
+  // 3. AMBIL DATA DARI HALAMAN SEBELUMNYA (SelectTicket & DataDiri)
   const { 
+    eventId,
+    eventName = "Event Name",
+    eventDate = "-",
+    eventLocation = "-",
     qtyEarly = 0, 
     qtyPresale = 0, 
     qtyReguler = 0, 
     totalHarga = 0, 
     paymentMethod = 'BCA Virtual Account',
-    // Gunakan data dari form sebelumnya, atau fallback ke data user login
+    
+    // Data Diri User (Bisa dari Form DataDiri atau Default Login)
     fullName = currentUser.name,
     email = currentUser.email,
     phoneNumber = '-',
-    idNumber = '-'
+    idNumber = '-',
+    
+    // Harga saat transaksi (Snapshot) agar aman
+    priceSnapshot = { 
+        early: { price: 0 }, 
+        presale: { price: 0 }, 
+        reguler: { price: 0 } 
+    }
   } = location.state || {};
   
-
   const isVirtualAccount = paymentMethod.toLowerCase().includes('virtual account');
 
-  // --- AMBIL CONFIG HARGA ---
-  const [config, setConfig] = useState(null);
-
-  useEffect(() => {
-    const data = getTicketConfig();
-    setConfig(data);
-  }, []);
-
-  // 4. GENERATE INVOICE
+  // 4. GENERATE NOMOR VA & INVOICE
   const [transactionData] = useState(() => {
     return {
       nomorVA: "880" + Math.floor(1000000000 + Math.random() * 9000000000), 
@@ -55,7 +57,7 @@ const PaymentBayar = () => {
   const tax = totalHarga * 0.11;
   const grandTotal = totalHarga + adminFee + platformFee + tax;
 
-  // Timer
+  // Timer Countdown
   const [timeLeft, setTimeLeft] = useState(3600);
 
   useEffect(() => {
@@ -85,25 +87,27 @@ const PaymentBayar = () => {
 
   const handleCompletePayment = () => {
     const newTrx = {
-        user: fullName,        // Nama User dari form/login
-        email: email,          // Email User dari form/login
+        user: fullName,        // Nama User
+        email: email,          // Email User
         phoneNumber: phoneNumber,
         idNumber: idNumber,
-        event: 'Cerita Anehku', 
+        event: eventName,      // Nama Event
         amount: formatRupiah(grandTotal),
         status: 'Lunas',
         time: new Date().toLocaleString('id-ID'),
         invoiceID: invoiceID,
-        method: paymentMethod
+        method: paymentMethod,
+        
+        // Simpan juga detail tiket agar bisa ditampilkan di E-Ticket
+        date: eventDate,
+        location: eventLocation,
+        qtyEarly, qtyPresale, qtyReguler
     };
 
     saveTransaction(newTrx);
     alert("Pembayaran Berhasil! Data telah masuk ke sistem.");
     navigate('/dashboard'); 
   };
-
-  // --- PENTING: Cegah error jika config belum siap ---
-  if (!config) return null; 
 
   return (
     <>
@@ -199,23 +203,23 @@ const PaymentBayar = () => {
 
                 <hr style={{border: 'none', borderTop: '1px solid #eee', margin: '15px 0'}}/>
 
-                {/* --- FIX: Gunakan Harga dari Config --- */}
+                {/* DETAIL TIKET - MENGGUNAKAN SNAPSHOT HARGA */}
                 {qtyEarly > 0 && (
                     <div style={styles.row}>
                         <span>Early Bird ({qtyEarly})</span>
-                        <span>{formatRupiah(qtyEarly * config.early.price)}</span>
+                        <span>{formatRupiah(qtyEarly * priceSnapshot.early.price)}</span>
                     </div>
                 )}
                 {qtyPresale > 0 && (
                     <div style={styles.row}>
                         <span>Presale ({qtyPresale})</span>
-                        <span>{formatRupiah(qtyPresale * config.presale.price)}</span>
+                        <span>{formatRupiah(qtyPresale * priceSnapshot.presale.price)}</span>
                     </div>
                 )}
                 {qtyReguler > 0 && (
                     <div style={styles.row}>
                         <span>Reguler ({qtyReguler})</span>
-                        <span>{formatRupiah(qtyReguler * config.reguler.price)}</span>
+                        <span>{formatRupiah(qtyReguler * priceSnapshot.reguler.price)}</span>
                     </div>
                 )}
                 

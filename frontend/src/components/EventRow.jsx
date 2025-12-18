@@ -1,15 +1,29 @@
+// src/components/EventRow.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const EventRow = ({ id, title, date, location, price, image, isAvailable }) => {
+const EventRow = ({ id, title, date, location, price, image, isAvailable, description }) => {
   const navigate = useNavigate();
+
+  const handleDetail = () => {
+    // Arahkan ke Halaman Detail Event
+    navigate('/event/detail', {
+      state: { 
+        id, 
+        title, 
+        date, 
+        location, 
+        price, 
+        image, 
+        description 
+      }
+    });
+  };
 
   return (
     <div style={styles.row}>
-      {/* Gambar */}
       <img src={image} alt={title} style={styles.image} />
 
-      {/* Info */}
       <div style={styles.info}>
         {isAvailable ? 
           <span style={styles.badgeAvailable}>Available</span> : 
@@ -20,18 +34,25 @@ const EventRow = ({ id, title, date, location, price, image, isAvailable }) => {
         <p style={styles.location}>📍 {location}</p>
       </div>
 
-      {/* Harga & Tombol */}
       <div style={styles.action}>
         <p style={styles.priceLabel}>Start From</p>
         <h3 style={styles.price}>{price}</h3>
         
-        {/* Navigasi ke Halaman Detail Event */}
+        {/* UBAH DI SINI: Label jadi "Lihat Detail" */}
         <button 
-          onClick={() => navigate(`/event/${id}`)} 
+          onClick={handleDetail} 
           className="btn btn-royal" 
-          style={{padding: '10px 25px'}}
+          style={{
+              padding: '10px 25px', 
+              background: '#0E3695', 
+              color: 'white', 
+              border: 'none', 
+              borderRadius: '8px', 
+              fontWeight: 'bold', 
+              cursor: 'pointer'
+          }}
         >
-          Select Ticket
+          Lihat Detail
         </button>
       </div>
     </div>

@@ -1,6 +1,7 @@
 // src/utils/ticketStore.js
 
-// Data Default (Jika belum ada yang diedit)
+// 1. Data Default (Template bawaan kamu)
+// Ini akan dipakai jika sebuah event belum pernah diatur harganya
 const defaultData = {
   early: { 
     price: 50000, 
@@ -22,17 +23,23 @@ const defaultData = {
   }
 };
 
-// Fungsi Ambil Data (Dipakai User & Admin)
-export const getTicketConfig = () => {
-  const storedData = localStorage.getItem('warTawaTicketConfig');
-  if (!storedData) {
-    return defaultData; // Balikin default kalau belum pernah diedit
-  }
-  return JSON.parse(storedData);
+// 2. Fungsi Ambil Data Berdasarkan ID Event
+export const getTicketConfigByEvent = (eventId) => {
+  // Ambil object besar yang menampung semua config event
+  const allConfigs = JSON.parse(localStorage.getItem('warTawaTicketConfigs') || '{}');
+  
+  // Jika event ini belum punya settingan, kembalikan defaultData
+  return allConfigs[eventId] || defaultData;
 };
 
-// Fungsi Simpan Data (Dipakai Admin)
-export const saveTicketConfig = (newData) => {
-  localStorage.setItem('warTawaTicketConfig', JSON.stringify(newData));
-  alert("Data Berhasil Disimpan! Silakan cek halaman User.");
+// 3. Fungsi Simpan Data Spesifik untuk Event Tertentu
+export const saveTicketConfig = (eventId, newData) => {
+  // Ambil data lama dulu
+  const allConfigs = JSON.parse(localStorage.getItem('warTawaTicketConfigs') || '{}');
+  
+  // Simpan/Update config hanya untuk event ID tersebut
+  allConfigs[eventId] = newData;
+  
+  // Masukkan kembali ke LocalStorage
+  localStorage.setItem('warTawaTicketConfigs', JSON.stringify(allConfigs));
 };

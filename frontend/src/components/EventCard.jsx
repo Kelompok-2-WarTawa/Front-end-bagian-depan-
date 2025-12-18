@@ -2,29 +2,51 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const EventCard = ({ title, date, location, price, image }) => {
+const EventCard = ({ id, title, date, location, price, image, description, totalSeats }) => {
   const navigate = useNavigate();
+
+  const handleDetail = () => {
+    // Arahkan ke Halaman Detail Event (Bukan langsung beli)
+    navigate('/event/detail', {
+      state: { 
+        id, 
+        title, 
+        date, 
+        location, 
+        price, 
+        image,
+        description,
+        totalSeats 
+      }
+    });
+  };
 
   return (
     <div style={styles.card}>
-      {/* GAMBAR */}
       <img src={image} alt={title} style={styles.image} />
       
-      {/* KONTEN */}
       <div style={styles.content}>
         <p style={styles.date}>📅 {date}</p>
         <h3 style={styles.title}>{title}</h3>
         <p style={styles.location}>📍 {location}</p>
         
-        {/* HARGA & TOMBOL */}
         <div style={styles.footer}>
           <span style={styles.price}>{price}</span>
           
+          {/* UBAH DI SINI: Label jadi "Lihat Detail" */}
           <button 
-            // --- BAGIAN YANG DIUBAH ---
-            onClick={() => navigate('/event/detail')} // Arahkan ke halaman Detail
+            onClick={handleDetail} 
             className="btn btn-gold" 
-            style={{padding: '5px 15px', fontSize: '13px'}}
+            style={{
+                padding: '8px 16px', 
+                fontSize: '13px', 
+                background: '#F59E0B', 
+                border: 'none', 
+                borderRadius: '6px', 
+                cursor: 'pointer', 
+                fontWeight: 'bold',
+                color: 'black'
+            }}
           >
             Lihat Detail
           </button>
