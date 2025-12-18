@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'; // Tambah Navigate
 
 // --- IMPORT HALAMAN USER ---
 import Home from './pages/Home';
@@ -9,15 +9,15 @@ import UserDashboard from './pages/UserDashboard';
 import UserProfile from './pages/UserProfile';
 
 // Detail Event & E-Ticket
-import DetailEvent from './pages/EventDetail'; // Pastikan nama file sesuai
+import DetailEvent from './pages/EventDetail'; 
 import ETicket from './pages/ETicket';
 
-// --- IMPORT PAYMENT STEPS (ALUR BARU) ---
-import PaymentSelect from './pages/PaymentSelect'; // Select Seat
-import PaymentInfo from './pages/PaymentInfo'; // Data Diri
-import PaymentConfirmation from './pages/PaymentConfirmation'; // Konfirmasi
-import PaymentCheckout from './pages/PaymentCheckout'; // Checkout
-import PaymentBayar from './pages/PaymentBayar';         // Invoice / Countdown
+// --- IMPORT PAYMENT STEPS ---
+import PaymentSelect from './pages/PaymentSelect';
+import PaymentInfo from './pages/PaymentInfo';
+import PaymentConfirmation from './pages/PaymentConfirmation';
+import PaymentCheckout from './pages/PaymentCheckout';
+import PaymentBayar from './pages/PaymentBayar';
 
 // --- IMPORT ADMIN ---
 import AdminLayout from './pages/admin/AdminLayout';
@@ -40,40 +40,45 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         
-        {/* --- DASHBOARD & PROFILE --- */}
+        {/* --- DASHBOARD & PROFILE USER --- */}
         <Route path="/dashboard" element={<UserDashboard />} />
         <Route path="/profile" element={<UserProfile />} />
 
         {/* --- FLOW PEMBELIAN TIKET --- */}
-        {/* 1. Detail Event (Klik Order Now di sini) */}
         <Route path="/event/detail" element={<DetailEvent />} />
-
-        {/* 2. Empat Tahapan Payment */}
         <Route path="/payment/select" element={<PaymentSelect />} />
         <Route path="/payment/info" element={<PaymentInfo />} />
         <Route path="/payment/confirmation" element={<PaymentConfirmation />} />
         <Route path="/payment/checkout" element={<PaymentCheckout />} />
-
-        {/* 3. Halaman Akhir (Invoice & Countdown) */}
         <Route path="/payment" element={<PaymentBayar />} />
 
-        {/* --- E-TICKET (Setelah Bayar) --- */}
+        {/* --- E-TICKET --- */}
         <Route path="/eticket" element={<ETicket />} />
         
 
-        {/* --- ROUTE ADMIN --- */}
-        {/* Login Admin (Di luar Layout agar tidak ada Sidebar) */}
+        {/* --- ROUTE KHUSUS ADMIN --- */}
+        
+        {/* 1. Login Admin (Tanpa Sidebar) */}
         <Route path="/admin/login" element={<AdminLogin />} />
 
-        {/* Panel Admin (Dilindungi Layout Sidebar) */}
+        {/* 2. Panel Admin (Dengan Sidebar) */}
         <Route path="/admin" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
+          
+          {/* A. Redirect Otomatis: /admin -> /admin/dashboard */}
+          <Route index element={<Navigate to="dashboard" replace />} />
+          
+          {/* B. Halaman Dashboard Utama (/admin/dashboard) */}
+          <Route path="dashboard" element={<AdminDashboard />} />
+          
+          {/* C. Menu Lainnya */}
           <Route path="events" element={<ManajemenEvent />} />
           <Route path="tickets" element={<KategoriTiket />} />    
           <Route path="transactions" element={<Transaksi />} />
           <Route path="validation" element={<ValidasiTiket />} />
           <Route path="export" element={<EksporData />} />
+          
         </Route>
+
       </Routes>
     </Router>
   );

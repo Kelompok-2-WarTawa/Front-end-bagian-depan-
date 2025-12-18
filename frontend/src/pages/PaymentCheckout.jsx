@@ -1,51 +1,96 @@
-// src/pages/payment/PaymentStep4.jsx
+// src/pages/payment/PaymentStep4.jsx (PaymentCheckout)
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { getCurrentUser } from '../utils/authStore';
+import { saveTransaction } from '../utils/transactionStore';
 
 const PaymentCheckout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const currentUser = getCurrentUser() || { name: "Guest" };
 
-  // 1. Ambil Data Estafet (Final)
+  // Ambil Data dari Halaman Sebelumnya
   const { eventData, ticketData, userData, paymentMethod } = location.state || {};
 
   const formatRupiah = (number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
 
-  // 2. Navigasi ke Halaman Bayar (Invoice)
+  // Jika data hilang, kembalikan ke dashboard
+  if (!eventData || !ticketData || !userData || !paymentMethod) {
+      setTimeout(() => navigate('/dashboard'), 0); 
+      return null;
+  }
+
+  // --- PERBAIKAN: SAFETY CHECK HARGA (Wajib Ada) ---
+  const calculateBasePrice = () => {
+    // 1. Cek apakah totalBasePrice yang dikirim valid (> 0)
+    let total = ticketData.totalBasePrice || 0;
+
+    // 2. Jika 0, kita hitung paksa menggunakan data qty dan priceSnapshot
+    if (total === 0 && ticketData.priceSnapshot && ticketData.qty) {
+        const p = ticketData.priceSnapshot;
+        const q = ticketData.qty;
+        
+        // Hitung manual: (Harga x Jumlah)
+        const priceEarly = (p.early?.price || 0) * (q.early || 0);
+        const pricePresale = (p.presale?.price || 0) * (q.presale || 0);
+        const priceReguler = (p.reguler?.price || 0) * (q.reguler || 0);
+        
+        total = priceEarly + pricePresale + priceReguler;
+    }
+
+    return total;
+  };
+
+  // --- HITUNG FINAL ---
+  const basePrice = calculateBasePrice(); 
+  const tax = basePrice * 0.11; 
+  const adminFee = 20000;
+  const platformFee = 29000;
+  const grandTotal = basePrice + tax + adminFee + platformFee;
+
+
+  // --- LOGIKA BAYAR ---
   const handlePayNow = () => {
-    navigate('/payment', { // Arahkan ke /payment (Halaman Invoice)
+    const generatedInvoiceID = "INV-" + Math.floor(100000 + Math.random() * 900000);
+
+    const newTransaction = {
+        invoiceID: generatedInvoiceID,
+        user: userData.fullName,
+        email: userData.email,
+        phoneNumber: userData.phoneNumber,
+        
+        event: eventData.title || eventData.nama || "Event Name",
+        image: eventData.image, 
+        date: eventData.date || eventData.jadwal,
+        location: eventData.location || eventData.lokasi,
+        
+        amount: formatRupiah(grandTotal),
+        status: 'Pending',
+        time: new Date().toLocaleString(),
+        paymentMethod: paymentMethod,
+
+        // Simpan detail tiket
+        qtyEarly: ticketData.qty?.early || 0,
+        qtyPresale: ticketData.qty?.presale || 0,
+        qtyReguler: ticketData.qty?.reguler || 0,
+        selectedSeats: ticketData.selectedSeats || []
+    };
+
+    saveTransaction(newTransaction);
+
+    navigate('/payment', { 
         state: { 
-            // Mapping data agar sesuai dengan PaymentBayar.jsx
-            eventId: eventData.id,
-            eventName: eventData.title,
-            eventDate: eventData.date,
-            eventLocation: eventData.location,
-            
-            qtyEarly: ticketData.qty.early,
-            qtyPresale: ticketData.qty.presale,
-            qtyReguler: ticketData.qty.reguler,
-            totalHarga: ticketData.totalBasePrice,
-            priceSnapshot: ticketData.priceSnapshot,
-            selectedSeats: ticketData.selectedSeats, // Kirim kursi
-
-            fullName: userData.fullName,
-            email: userData.email,
-            phoneNumber: userData.phoneNumber,
-            idNumber: userData.idNumber,
-
-            paymentMethod: paymentMethod
+            eventData, 
+            ticketData, 
+            userData, 
+            paymentMethod,
+            invoiceID: generatedInvoiceID,
+            savedTransaction: newTransaction
         } 
     });
   };
-
-  if (!eventData || !ticketData || !userData || !paymentMethod) {
-      navigate('/dashboard');
-      return null;
-  }
 
   return (
     <>
@@ -64,17 +109,19 @@ const PaymentCheckout = () => {
         </div>
 
         <div style={styles.mainCard}>
-          <h2 style={styles.pageTitle}>Checkout</h2>
+          <h2 style={styles.pageTitle}>Review & Checkout</h2>
 
-          {/* EVENT INFO CARD */}
+          {/* EVENT INFO */}
           <div style={styles.whiteCard}>
             <div style={styles.eventLayout}>
-                <img src={eventData.image} alt="Event" style={styles.eventImg}/>
+                <img src={eventData.image || "https://placehold.co/150x100"} alt="Event" style={styles.eventImg}/>
                 <div style={styles.eventDetails}>
-                    <h3 style={{margin: '0 0 10px 0', fontSize: '22px'}}>{eventData.title}</h3>
-                    <p style={styles.eventText}>📍 {eventData.location}</p>
-                    <p style={styles.eventText}>📅 {eventData.date}</p>
-                    <p style={styles.eventText}>👤 {ticketData.selectedSeats?.length} Kursi Dipilih</p>
+                    <h3 style={{margin: '0 0 10px 0', fontSize: '22px'}}>
+                        {eventData.title || eventData.nama || "Event Name"}
+                    </h3>
+                    <p style={styles.eventText}>📍 {eventData.location || eventData.lokasi}</p>
+                    <p style={styles.eventText}>📅 {eventData.date || eventData.jadwal}</p>
+                    <p style={styles.eventText}>👤 {ticketData.selectedSeats?.length || 0} Kursi Dipilih</p>
                 </div>
             </div>
           </div>
@@ -97,22 +144,22 @@ const PaymentCheckout = () => {
             </div>
           </div>
 
-          {/* PAYMENT DETAILS */}
+          {/* PAYMENT DETAILS (TAMPILKAN HASIL HITUNG ULANG) */}
           <div style={styles.summaryBox}>
-             <h3 style={{margin: '0 0 15px 0'}}>Payment Details</h3>
+             <h3 style={{margin: '0 0 15px 0'}}>Rincian Pembayaran</h3>
              
-             {/* Rincian Tiket per Kategori */}
-             {['early', 'presale', 'reguler'].map(type => (
-                 ticketData.qty[type] > 0 && (
-                     <div key={type} style={styles.summaryRow}>
-                        <span style={{textTransform:'capitalize'}}>{type} Bird</span>
-                        <span>{ticketData.qty[type]} x</span>
-                     </div>
-                 )
-             ))}
+             {/* Rincian Subtotal */}
+             <div style={styles.summaryRow}>
+                <span>Subtotal Tiket ({ticketData.selectedSeats?.length} kursi)</span>
+                <span>{formatRupiah(basePrice)}</span>
+             </div>
+
+             <div style={styles.summaryRow}><span>Pajak (11%)</span><span>{formatRupiah(tax)}</span></div>
+             <div style={styles.summaryRow}><span>Biaya Admin</span><span>{formatRupiah(adminFee)}</span></div>
+             <div style={styles.summaryRow}><span>Biaya Platform</span><span>{formatRupiah(platformFee)}</span></div>
 
              {/* Rincian Kursi */}
-             <div style={{...styles.summaryRow, color:'#555', fontSize:'13px', marginBottom:'15px', alignItems:'flex-start'}}>
+             <div style={{...styles.summaryRow, color:'#555', fontSize:'13px', marginTop:'10px', marginBottom:'15px', alignItems:'flex-start'}}>
                 <span>Nomor Kursi:</span>
                 <span style={{maxWidth:'200px', textAlign:'right', fontWeight:'bold', wordBreak: 'break-word'}}>
                     {ticketData.selectedSeats?.join(', ')}
@@ -121,12 +168,13 @@ const PaymentCheckout = () => {
 
              <hr style={{border: 'none', borderTop: '1px solid #ccc', margin: '15px 0'}}/>
              
-             <div style={{...styles.summaryRow, fontSize: '18px', fontWeight: 'bold'}}>
-                <span>TOTAL</span>
-                <span>{formatRupiah(ticketData.totalBasePrice)}</span>
+             {/* TOTAL FINAL */}
+             <div style={{...styles.summaryRow, fontSize: '18px', fontWeight: 'bold', color: '#0E3695'}}>
+                <span>TOTAL TAGIHAN</span>
+                <span>{formatRupiah(grandTotal)}</span>
              </div>
              
-             <button onClick={handlePayNow} style={styles.payButton}>Pay Now</button>
+             <button onClick={handlePayNow} style={styles.payButton}>Bayar Sekarang</button>
           </div>
         </div>
       </div>
@@ -141,23 +189,18 @@ const styles = {
   separator: { fontSize: '24px', fontWeight: 'bold', color: '#553C00', marginTop: '-4px' },
   stepCircleActive: { width: '28px', height: '28px', backgroundColor: 'black', color: '#F59E0B', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold' },
   stepCircleDone: { width: '28px', height: '28px', backgroundColor: 'black', color: '#F59E0B', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold' },
-  
   mainCard: { backgroundColor: '#F59E0B', borderRadius: '16px', padding: '30px', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' },
   pageTitle: { textAlign: 'center', color: 'white', fontSize: '28px', marginBottom: '20px', marginTop: 0 },
   whiteCard: { backgroundColor: '#FFFBEB', borderRadius: '12px', padding: '25px', marginBottom: '20px', color: '#333' },
   sectionHeader: { margin: '0 0 15px 0', fontSize: '18px', fontWeight: 'bold', borderBottom: '1px solid #eee', paddingBottom: '10px' },
-  
   eventLayout: { display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' },
   eventImg: { width: '150px', height: '100px', borderRadius: '8px', objectFit: 'cover' },
   eventDetails: { flex: 1 },
   eventText: { margin: '5px 0', color: '#555', fontSize: '14px' },
-  
   infoRow: { display: 'flex', marginBottom: '8px', fontSize: '15px' },
   label: { width: '140px', fontWeight: '600', color: '#444' },
   value: { flex: 1, color: '#000' },
-  
   paymentIcon: { width: '40px', height: '40px', backgroundColor: '#E0F2FE', borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '20px' },
-  
   summaryBox: { backgroundColor: '#FFFBEB', borderRadius: '12px', padding: '25px', marginTop: '10px', color: '#333' },
   summaryRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '8px' },
   payButton: { width: '100%', padding: '15px', backgroundColor: '#1F2937', color: 'white', border: 'none', borderRadius: '8px', fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px', transition: '0.3s' }

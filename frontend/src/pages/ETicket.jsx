@@ -1,147 +1,184 @@
 // src/pages/ETicket.jsx
-import React from 'react';
+import React, { useRef } from 'react';
+import { useLocation, Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { useLocation, useNavigate } from 'react-router-dom';
+import Footer from '../components/Footer';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
+import { getCurrentUser } from '../utils/authStore';
 
 const ETicket = () => {
-  const navigate = useNavigate();
   const location = useLocation();
-  const currentUser = { name: "Sutejo" };
+  const ticketRef = useRef();
+  const currentUser = getCurrentUser(); 
 
-  // Data Tiket (Default jika akses langsung)
-  const ticketData = location.state || {
-    title: "Event Name", date: "-", time: "-", location: "-", qrData: "0000",
-    invoiceID: "-", amount: "-", method: "-",
-    user: "-", email: "-", phoneNumber: "-", idNumber: "-"
+  // --- LOGIKA CERDAS DETEKSI DATA ---
+  const state = location.state || {};
+
+  // 1. Cek apakah data datang dari Dashboard (Flat) atau Checkout (Nested)
+  const rawEvent = state.eventData || state; 
+  
+  // 2. Normalisasi Data Event (Agar seragam)
+  const eventInfo = {
+      nama: rawEvent.nama || rawEvent.title || rawEvent.event || "Nama Event Tidak Ditemukan",
+      jadwal: rawEvent.jadwal || rawEvent.date || "-",
+      lokasi: rawEvent.lokasi || rawEvent.location || "-",
+      kota: rawEvent.kota || "-",
+      jam: rawEvent.jam || rawEvent.time || "Open Gate",
+      image: rawEvent.image // Bisa undefined
   };
+
+  // 3. Normalisasi Data User
+  const userInfo = {
+      nama: state.userData?.fullName || state.user || currentUser?.fullName || "Guest",
+      email: state.userData?.email || state.email || currentUser?.email || "-"
+  };
+
+  // 4. Normalisasi Data Tiket/Kursi
+  const seatInfo = state.ticketData?.selectedSeats?.join(', ') 
+                   || state.seat 
+                   || state.selectedSeats 
+                   || "-";
+
+  const invoiceID = state.invoiceID || state.qrData || "INV-UNKNOWN";
+
+  // --- END LOGIKA ---
+
+  const handleDownloadPDF = async () => {
+    const element = ticketRef.current;
+    if(!element) return;
+    
+    const canvas = await html2canvas(element);
+    const data = canvas.toDataURL('image/png');
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const imgProperties = pdf.getImageProperties(data);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProperties.height * pdfWidth) / imgProperties.width;
+
+    pdf.addImage(data, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save(`E-Ticket-${invoiceID}.pdf`);
+  };
+
+  if (!invoiceID || invoiceID === "INV-UNKNOWN") {
+    return (
+      <div style={{ textAlign: 'center', padding: '50px', color: 'white', background: '#0B1120', minHeight: '100vh' }}>
+        <h2>Data Tiket Tidak Ditemukan</h2>
+        <p>Silakan akses dari Dashboard.</p>
+        <Link to="/dashboard" style={{ color: '#F59E0B' }}>Kembali ke Dashboard</Link>
+      </div>
+    );
+  }
 
   return (
     <>
       <Navbar user={currentUser} />
-      
-      <div style={{ backgroundColor: '#0B1120', minHeight: '100vh', padding: '40px 20px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+      <div style={{ backgroundColor: '#0B1120', minHeight: '100vh', padding: '40px 20px', color: 'white' }}>
         
-        <div style={styles.ticketContainer}>
-            
-            {/* 1. HEADER (GAMBAR) */}
-            <div style={styles.ticketHeader}>
-                <img 
-                    src="https://placehold.co/600x200/111/F59E0B?text=EKRESA+CERITA+ANEHKU" 
-                    alt="Banner" 
-                    style={{width: '100%', height: '100%', objectFit: 'cover'}} 
-                />
-                <div style={styles.overlay}>
-                    <h2 style={{color: 'white', margin: 0, textShadow: '0 2px 4px rgba(0,0,0,0.8)'}}>{ticketData.title}</h2>
-                    <span style={styles.statusBadge}>LUNAS</span>
-                </div>
+        <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+            <h1 style={{ color: '#10B981', margin: 0 }}>E-TICKET</h1>
+            <p style={{ color: '#9CA3AF' }}>Tunjukkan QR Code ini saat masuk.</p>
+          </div>
+
+          {/* KARTU TIKET */}
+          <div 
+            ref={ticketRef} 
+            style={{ 
+              backgroundColor: 'white', 
+              color: '#111827', 
+              borderRadius: '16px', 
+              overflow: 'hidden',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
+            }}
+          >
+            {/* Header Kuning */}
+            <div style={{ backgroundColor: '#F59E0B', padding: '20px', textAlign: 'center', borderBottom: '2px dashed #000' }}>
+              <h2 style={{ margin: 0, fontSize: '24px', fontWeight: '800', letterSpacing: '1px' }}>TIKET MASUK</h2>
+              <p style={{ margin: '5px 0 0', fontWeight: 'bold', fontSize: '14px' }}>{invoiceID}</p>
             </div>
 
-            {/* 2. BODY (INFORMASI TIKET & DATA DIRI LENGKAP) */}
-            <div style={styles.ticketBody}>
-                
-                {/* Baris 1: Nama & No. ID */}
-                <div style={styles.row}>
-                    <div style={{flex: 1}}>
-                        <p style={styles.label}>Nama Lengkap</p>
-                        <p style={styles.value}>{ticketData.user}</p>
-                    </div>
-                </div>
-
-                <hr style={{border: 'none', borderTop: '1px solid #ddd', margin: '15px 0'}} />
-
-                {/* Baris 3: Jadwal Event */}
-                <div style={styles.row}>
-                    <div>
-                        <p style={styles.label}>Tanggal</p>
-                        <p style={styles.value}>{ticketData.date}</p>
-                    </div>
-                    <div style={{textAlign: 'right'}}>
-                        <p style={styles.label}>Jam</p>
-                        <p style={styles.value}>{ticketData.time}</p>
-                    </div>
-                </div>
-
-                <div style={{marginTop: '10px'}}>
-                    <p style={styles.label}>Lokasi</p>
-                    <p style={styles.value}>{ticketData.location}</p>
-                </div>
-            </div>
-
-            {/* 3. GARIS SOBEKAN */}
-            <div style={styles.ripLine}>
-                <div style={styles.circleLeft}></div>
-                <div style={styles.dashedLine}></div>
-                <div style={styles.circleRight}></div>
-            </div>
-
-            {/* 4. RINCIAN PEMBAYARAN */}
-            <div style={{padding: '20px 25px', backgroundColor: '#FFFBEB'}}>
-                <h4 style={{margin: '0 0 15px 0', borderBottom: '1px solid #ccc', paddingBottom: '5px', fontSize: '14px', color: '#555'}}>Rincian Pembayaran</h4>
-                
-                <div style={styles.rowSmall}>
-                    <span>No. Invoice</span>
-                    <span style={{fontWeight: 'bold', fontFamily: 'monospace'}}>{ticketData.invoiceID}</span>
-                </div>
-                <div style={styles.rowSmall}>
-                    <span>Metode Bayar</span>
-                    <span>{ticketData.method}</span>
-                </div>
-                <div style={{...styles.rowSmall, marginTop: '10px', fontSize: '16px', color: '#0E3695', fontWeight: 'bold'}}>
-                    <span>Total Bayar</span>
-                    <span>{ticketData.amount}</span>
-                </div>
-            </div>
-
-            {/* 5. FOOTER (QR CODE) */}
-            <div style={styles.ticketFooter}>
-                <div style={{background: 'white', padding: '10px', borderRadius: '8px', display: 'inline-block', border: '1px solid #ddd'}}>
-                     <img 
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${ticketData.qrData}`} 
-                        alt="QR Code" 
-                    />
-                </div>
-                <p style={{textAlign: 'center', fontSize: '12px', color: '#666', marginTop: '10px'}}>
-                    Scan QR Code ini di pintu masuk
+            {/* Isi Tiket */}
+            <div style={{ padding: '30px' }}>
+              
+              {/* Nama Event */}
+              <div style={{ marginBottom: '25px', textAlign: 'center' }}>
+                <p style={{ fontSize: '12px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '1px' }}>Event</p>
+                <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '5px 0', color:'#111827' }}>
+                    {eventInfo.nama}
+                </h2>
+                <p style={{ color: '#4B5563', margin: 0, fontSize:'14px' }}>
+                    WarTawa Live Experience
                 </p>
+              </div>
 
-                <button onClick={() => navigate('/dashboard')} style={styles.backButton}>
-                    &larr; Kembali ke Dashboard
-                </button>
+              {/* Grid Info Tanggal & Lokasi */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '25px', borderBottom:'1px solid #eee', paddingBottom:'20px' }}>
+                <div>
+                  <p style={styles.label}>Tanggal</p>
+                  <p style={styles.value}>{eventInfo.jadwal}</p>
+                </div>
+                <div>
+                  <p style={styles.label}>Waktu</p>
+                  <p style={styles.value}>{eventInfo.jam}</p>
+                </div>
+                <div>
+                  <p style={styles.label}>Lokasi</p>
+                  <p style={styles.value}>{eventInfo.lokasi}</p>
+                </div>
+                <div>
+                  <p style={styles.label}>Kota</p>
+                  <p style={styles.value}>{eventInfo.kota}</p>
+                </div>
+              </div>
+
+              {/* Info Pemilik */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                 <div>
+                    <p style={styles.label}>Nama Pengunjung</p>
+                    <p style={{...styles.value, fontSize:'16px'}}>{userInfo.nama}</p>
+                    <p style={{fontSize: '12px', color: '#666'}}>{userInfo.email}</p>
+                 </div>
+                 <div style={{textAlign:'right'}}>
+                    <p style={styles.label}>Kursi</p>
+                    <p style={{...styles.value, fontSize:'18px', color:'#F59E0B'}}>{seatInfo}</p>
+                 </div>
+              </div>
+
+              {/* QR Code */}
+              <div style={{ marginTop: '20px', textAlign: 'center', background:'#F9FAFB', padding:'20px', borderRadius:'12px' }}>
+                 <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${invoiceID}`} 
+                    alt="QR Code" 
+                    style={{ width: '130px', height: '130px', mixBlendMode:'multiply' }}
+                 />
+                 <p style={{ fontSize: '10px', color: '#9CA3AF', marginTop: '10px' }}>Scan validasi di pintu masuk</p>
+              </div>
+
             </div>
+          </div>
+
+          <div style={{ marginTop: '30px', display: 'flex', gap: '15px' }}>
+             <button onClick={handleDownloadPDF} style={styles.btnPrimary}>
+                ⬇ Simpan PDF
+             </button>
+             <Link to="/dashboard" style={styles.btnSecondary}>
+                Kembali
+             </Link>
+          </div>
 
         </div>
       </div>
+      <Footer />
     </>
   );
 };
 
 const styles = {
-  ticketContainer: {
-    backgroundColor: '#FFFBEB', width: '100%', maxWidth: '400px', borderRadius: '20px', overflow: 'hidden', boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
-  },
-  ticketHeader: { height: '150px', position: 'relative' },
-  overlay: {
-    position: 'absolute', bottom: 0, left: 0, right: 0, padding: '15px',
-    background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)', display: 'flex', justifyContent: 'space-between', alignItems: 'end'
-  },
-  statusBadge: { backgroundColor: '#10B981', color: 'white', padding: '4px 10px', borderRadius: '12px', fontSize: '10px', fontWeight: 'bold' },
-  
-  ticketBody: { padding: '25px', color: '#333' },
-  
-  row: { display: 'flex', justifyContent: 'space-between', marginBottom: '15px' },
-  rowSmall: { display: 'flex', justifyContent: 'space-between', marginBottom: '5px', fontSize: '13px', color: '#333' },
-  
-  label: { fontSize: '12px', color: '#888', marginBottom: '2px' },
-  value: { fontSize: '15px', fontWeight: 'bold', color: '#000', margin: 0 },
-  
-  // Styles Sobekan
-  ripLine: { position: 'relative', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  circleLeft: { position: 'absolute', left: '-10px', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#0B1120' },
-  circleRight: { position: 'absolute', right: '-10px', width: '20px', height: '20px', borderRadius: '50%', backgroundColor: '#0B1120' },
-  dashedLine: { width: '100%', borderTop: '2px dashed #ccc', margin: '0 20px' },
-
-  ticketFooter: { padding: '20px', textAlign: 'center', backgroundColor: '#F3F4F6' },
-  backButton: { marginTop: '10px', background: 'none', border: 'none', color: '#555', cursor: 'pointer', fontSize: '14px', textDecoration: 'underline' }
+    label: { fontSize: '12px', color: '#6B7280', marginBottom: '4px', textTransform:'uppercase' },
+    value: { fontSize: '14px', fontWeight: 'bold', color: '#111827', margin: 0 },
+    btnPrimary: { flex: 1, padding: '15px', background: '#F59E0B', border: 'none', borderRadius: '8px', color: 'black', fontWeight: 'bold', cursor: 'pointer', fontSize: '16px' },
+    btnSecondary: { flex: 1, padding: '15px', background: '#374151', border: 'none', borderRadius: '8px', color: 'white', fontWeight: 'bold', cursor: 'pointer', fontSize: '16px', textDecoration: 'none', textAlign: 'center' }
 };
 
 export default ETicket;

@@ -2,64 +2,56 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { saveTransaction } from '../utils/transactionStore'; 
-import { getCurrentUser } from '../utils/authStore'; // 1. Import Auth
+import { updateTransactionStatus } from '../utils/transactionStore'; 
+import { getCurrentUser } from '../utils/authStore';
 
 const PaymentBayar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // 2. Ambil data user yang sedang login
-  // Jika tidak ada user login, gunakan default guest
+  // 1. Ambil User
   const currentUser = getCurrentUser() || { name: "Guest", email: "guest@example.com" };
 
-  // 3. AMBIL DATA DARI HALAMAN SEBELUMNYA (SelectTicket & DataDiri)
+  // 2. AMBIL DATA DARI PAGE SEBELUMNYA
   const { 
-    eventId,
-    eventName = "Event Name",
-    eventDate = "-",
-    eventLocation = "-",
-    qtyEarly = 0, 
-    qtyPresale = 0, 
-    qtyReguler = 0, 
-    totalHarga = 0, 
-    paymentMethod = 'BCA Virtual Account',
-    
-    // Data Diri User (Bisa dari Form DataDiri atau Default Login)
-    fullName = currentUser.name,
-    email = currentUser.email,
-    phoneNumber = '-',
-    idNumber = '-',
-    
-    // Harga saat transaksi (Snapshot) agar aman
-    priceSnapshot = { 
-        early: { price: 0 }, 
-        presale: { price: 0 }, 
-        reguler: { price: 0 } 
-    }
+    eventData, 
+    ticketData, 
+    userData, 
+    paymentMethod, 
+    invoiceID, 
+    savedTransaction // <-- INI PENTING: Total harga yang benar ada di sini
   } = location.state || {};
-  
+
+  // Jika data hilang (refresh page sembarangan), kembalikan ke dashboard
+  if (!invoiceID || !savedTransaction) {
+      return (
+        <div style={{textAlign:'center', padding:'50px', background:'#0B1120', color:'white', minHeight:'100vh'}}>
+           <h2>Data Transaksi Tidak Ditemukan</h2>
+           <button onClick={() => navigate('/dashboard')} style={{padding:'10px', marginTop:'20px'}}>Kembali ke Dashboard</button>
+        </div>
+      );
+  }
+
+  // --- DEFINISI VARIABEL UI (Agar sesuai dengan kode UI Anda) ---
   const isVirtualAccount = paymentMethod.toLowerCase().includes('virtual account');
-
-  // 4. GENERATE NOMOR VA & INVOICE
-  const [transactionData] = useState(() => {
-    return {
-      nomorVA: "880" + Math.floor(1000000000 + Math.random() * 9000000000), 
-      invoiceID: "INV-" + Math.floor(100000 + Math.random() * 900000)      
-    };
-  });
   
-  const { nomorVA, invoiceID } = transactionData;
+  // Generate VA Dummy (Atau ambil dari savedTransaction jika ada)
+  const [nomorVA] = useState("880" + Math.floor(1000000000 + Math.random() * 9000000000));
 
-  // 5. HITUNG BIAYA TAMBAHAN
+  // Extract Data Tiket untuk Rincian (Fallback ke 0 jika undefined)
+  const qtyEarly = ticketData?.qty?.early || 0;
+  const qtyPresale = ticketData?.qty?.presale || 0;
+  const qtyReguler = ticketData?.qty?.reguler || 0;
+  const priceSnapshot = ticketData?.priceSnapshot || { early:{price:0}, presale:{price:0}, reguler:{price:0} };
+
+  // Hitung Biaya Tambahan (Hanya untuk display rincian)
   const adminFee = 20000;
-  const platformFee = 29000;
-  const tax = totalHarga * 0.11;
-  const grandTotal = totalHarga + adminFee + platformFee + tax;
+  const platformFee = 29000; 
+  const totalBasePrice = ticketData?.totalBasePrice || 0;
+  const tax = totalBasePrice * 0.11;
 
-  // Timer Countdown
+  // --- LOGIKA TIMER ---
   const [timeLeft, setTimeLeft] = useState(3600);
-
   useEffect(() => {
     if (timeLeft <= 0) return;
     const interval = setInterval(() => {
@@ -85,28 +77,16 @@ const PaymentBayar = () => {
     weekday: 'long', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' 
   });
 
+  // --- LOGIKA PENYELESAIAN ---
   const handleCompletePayment = () => {
-    const newTrx = {
-        user: fullName,        // Nama User
-        email: email,          // Email User
-        phoneNumber: phoneNumber,
-        idNumber: idNumber,
-        event: eventName,      // Nama Event
-        amount: formatRupiah(grandTotal),
-        status: 'Lunas',
-        time: new Date().toLocaleString('id-ID'),
-        invoiceID: invoiceID,
-        method: paymentMethod,
-        
-        // Simpan juga detail tiket agar bisa ditampilkan di E-Ticket
-        date: eventDate,
-        location: eventLocation,
-        qtyEarly, qtyPresale, qtyReguler
-    };
-
-    saveTransaction(newTrx);
+    // 1. Update status jadi LUNAS di database
+    updateTransactionStatus(invoiceID, 'Lunas');
+    
+    // 2. Pindah ke E-Ticket membawa semua data
     alert("Pembayaran Berhasil! Data telah masuk ke sistem.");
-    navigate('/dashboard'); 
+    navigate('/eticket', { 
+        state: { eventData, ticketData, userData, invoiceID, paymentMethod } 
+    });
   };
 
   return (
@@ -118,7 +98,8 @@ const PaymentBayar = () => {
         <div style={styles.mainCard}>
             <div style={styles.bannerContainer}>
                 <img 
-                    src="https://placehold.co/800x200/111/F59E0B?text=EKRESA+CERITA+ANEHKU" 
+                    // Gunakan gambar dari eventData, fallback ke placeholder jika kosong
+                    src={eventData?.image || "https://placehold.co/800x200/111/F59E0B?text=EVENT"} 
                     alt="Event" 
                     style={{width: '100%', height: '100%', objectFit: 'cover'}}
                 />
@@ -171,7 +152,7 @@ const PaymentBayar = () => {
                     <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                         <div style={{backgroundColor: 'white', padding: '15px', borderRadius: '10px', boxShadow: '0 2px 10px rgba(0,0,0,0.1)'}}>
                             <img 
-                                src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=WarTawaPayment" 
+                                src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${invoiceID}`} 
                                 alt="QR Code" 
                             />
                         </div>
@@ -198,12 +179,14 @@ const PaymentBayar = () => {
                     <p style={{fontWeight: 'bold', fontSize: '16px', margin: '5px 0'}}>{invoiceID}</p>
                     
                     <p style={{fontSize: '12px', color: '#666', margin: '15px 0 0 0'}}>Total Pembayaran</p>
-                    <p style={{fontWeight: 'bold', fontSize: '20px', margin: '5px 0'}}>{formatRupiah(grandTotal)}</p>
+                    <p style={{fontWeight: 'bold', fontSize: '20px', margin: '5px 0', color: '#059669'}}>
+                        {savedTransaction?.amount}
+                    </p>
                 </div>
 
                 <hr style={{border: 'none', borderTop: '1px solid #eee', margin: '15px 0'}}/>
 
-                {/* DETAIL TIKET - MENGGUNAKAN SNAPSHOT HARGA */}
+                {/* DETAIL TIKET (Rincian UI Asli Anda) */}
                 {qtyEarly > 0 && (
                     <div style={styles.row}>
                         <span>Early Bird ({qtyEarly})</span>
@@ -241,7 +224,7 @@ const PaymentBayar = () => {
                     ✅ Saya Sudah Membayar
                  </button>
 
-                 <button onClick={() => navigate('/')} style={{background: 'none', border: 'none', color: 'white', textDecoration: 'underline', cursor: 'pointer'}}>
+                 <button onClick={() => navigate('/dashboard')} style={{background: 'none', border: 'none', color: 'white', textDecoration: 'underline', cursor: 'pointer'}}>
                     Batalkan Pesanan
                  </button>
             </div>
@@ -252,7 +235,7 @@ const PaymentBayar = () => {
   );
 };
 
-// Styles
+
 const styles = {
   mainCard: { backgroundColor: '#F59E0B', borderRadius: '12px', maxWidth: '600px', margin: '0 auto', minHeight: '100vh', paddingBottom: '40px', boxShadow: '0 0 20px rgba(0,0,0,0.5)', position: 'relative' },
   bannerContainer: { width: '100%', height: '180px', overflow: 'hidden', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' },

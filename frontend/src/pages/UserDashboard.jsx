@@ -36,14 +36,14 @@ const UserDashboard = () => {
         setLatestTicket(transactions[0]);
     }
 
-    // 3. AMBIL DATA EVENT DARI STORE (YANG DI-INPUT ADMIN)
+    // 3. AMBIL DATA EVENT DARI STORE 
     const allEvents = getEvents();
 
     // Format Data agar sesuai dengan props Card
     const formattedEvents = allEvents.map(ev => ({
         id: ev.id,
-        title: ev.nama,          // Mapping 'nama' ke 'title'
-        date: `${ev.jadwal} • ${ev.jam}`, // Gabung tanggal & jam
+        title: ev.nama,          
+        date: `${ev.jadwal} • ${ev.jam}`,
         location: `${ev.lokasi}, ${ev.kota}`,
         price: `Rp ${parseInt(ev.price).toLocaleString('id-ID')}`,
         image: ev.image,
@@ -53,12 +53,12 @@ const UserDashboard = () => {
     // REKOMENDASI: Hanya ambil 3 teratas
     setRecommendations(formattedEvents.slice(0, 3));
 
-    // UPCOMING: Ambil SEMUA event (sesuai request)
+    // UPCOMING: Ambil SEMUA event
     setUpcomingEvents(formattedEvents);
 
   }, [navigate]);
 
-  // Data Tiket Default (Fallback)
+  // Data Tiket Default
   const defaultTicket = {
       title: "Comedy Night with Rising Stars",
       date: "Sabtu, 28 Des 2025",
