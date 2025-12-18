@@ -1,8 +1,38 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+// src/pages/Login.jsx
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Footer from '../components/Footer';
+import { loginUser } from '../utils/authStore'; // Import logika login
 
 const Login = () => {
+  const navigate = useNavigate();
+  
+  // State untuk menampung input user
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
+
+  // Handle perubahan input
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // Handle Login
+  const handleLogin = (e) => {
+    e.preventDefault();
+
+    // Cek Login ke "Database"
+    const result = loginUser(formData.email, formData.password);
+
+    if (result.success) {
+      alert(`Selamat Datang, ${result.data.name}!`);
+      navigate('/dashboard'); // Redirect ke Dashboard jika sukses
+    } else {
+      alert(result.message); // Tampilkan pesan error jika gagal
+    }
+  };
+
   return (
     <div style={styles.pageContainer}>
       <div style={styles.contentWrap}>
@@ -24,18 +54,32 @@ const Login = () => {
           </div>
 
           {/* FORM INPUTS */}
-          <form>
+          <form onSubmit={handleLogin}>
             <div style={styles.inputGroup}>
               <label style={styles.label}>Email <span style={{color: '#EF4444'}}>*</span></label>
-              <input type="email" style={styles.input} />
+              <input 
+                type="email" 
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+                style={styles.input} 
+              />
             </div>
 
             <div style={styles.inputGroup}>
               <label style={styles.label}>Password <span style={{color: '#EF4444'}}>*</span></label>
-              <input type="password" style={styles.input} />
+              <input 
+                type="password" 
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+                style={styles.input} 
+              />
             </div>
 
-            <button type="button" className="btn btn-gold" style={styles.button}>
+            <button type="submit" className="btn btn-gold" style={styles.button}>
               Login
             </button>
           </form>
@@ -129,7 +173,13 @@ const styles = {
     width: '100%',
     padding: '15px',
     fontSize: '18px',
-    marginTop: '20px'
+    marginTop: '20px',
+    backgroundColor: '#F59E0B', // Memastikan warna tombol tetap emas
+    color: 'black',
+    border: 'none',
+    fontWeight: 'bold',
+    borderRadius: '6px',
+    cursor: 'pointer'
   }
 };
 

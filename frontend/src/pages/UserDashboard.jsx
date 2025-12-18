@@ -7,19 +7,34 @@ import TicketCard from '../components/TicketCard';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { getAllTransactions } from '../utils/transactionStore';
+import { getCurrentUser } from '../utils/authStore'; // 1. IMPORT AUTH STORE
 
 const UserDashboard = () => {
   const navigate = useNavigate();
-  const currentUser = { name: "Sutejo" };
+  
+  // 2. STATE UNTUK USER & TIKET
+  const [currentUser, setCurrentUser] = useState({ name: "Guest" });
   const [latestTicket, setLatestTicket] = useState(null);
 
+  // 3. EFFECT: AMBIL DATA USER & TRANSAKSI SAAT LOAD
   useEffect(() => {
+    // Ambil User yang sedang login
+    const user = getCurrentUser();
+    if (user) {
+      setCurrentUser(user);
+    } else {
+      // Jika belum login, tendang ke halaman login
+      navigate('/login');
+    }
+
+    // Ambil Transaksi Terakhir
     const transactions = getAllTransactions();
     if (transactions.length > 0) {
         setLatestTicket(transactions[0]);
     }
-  }, []);
+  }, [navigate]);
 
+  // Data Tiket Default (Fallback)
   const defaultTicket = {
       title: "Comedy Night with Rising Stars",
       date: "Sabtu, 28 Des 2025",
@@ -31,13 +46,13 @@ const UserDashboard = () => {
       invoiceID: "INV-DUMMY",
       amount: "Rp 0",
       method: "-",
-      // Data Diri Default
       user: currentUser.name,
       email: "-",
       phoneNumber: "-",
       idNumber: "-"
   };
 
+  // Persiapan Data untuk dikirim ke E-Ticket
   const ticketToShow = latestTicket ? {
       title: latestTicket.event,
       date: "Minggu, 18 April 2025",
@@ -49,7 +64,6 @@ const UserDashboard = () => {
       invoiceID: latestTicket.invoiceID,
       amount: latestTicket.amount,
       method: latestTicket.method,
-      // UPDATE: Masukkan Data Diri dari Transaksi
       user: latestTicket.user,
       email: latestTicket.email,
       phoneNumber: latestTicket.phoneNumber,
@@ -79,11 +93,18 @@ const UserDashboard = () => {
       <div style={styles.heroBanner}></div>
 
       <div className="container" style={{paddingTop: '40px', paddingBottom: '60px'}}>
+        
+        {/* HEADER: NAMA USER DINAMIS */}
         <div style={{textAlign: 'center', marginBottom: '60px'}}>
-            <h1 style={{fontSize: '36px', marginBottom: '10px', color: 'white'}}>Halo, <span style={{color: '#F59E0B'}}>{currentUser.name}!</span></h1>
-            <p style={{fontSize: '20px', color: '#9CA3AF', fontWeight: '300'}}>Siap tertawa lepas hari ini? Cek tiketmu di bawah.</p>
+            <h1 style={{fontSize: '36px', marginBottom: '10px', color: 'white'}}>
+                Halo, <span style={{color: '#F59E0B'}}>{currentUser.name}!</span>
+            </h1>
+            <p style={{fontSize: '20px', color: '#9CA3AF', fontWeight: '300'}}>
+                Siap tertawa lepas hari ini? Cek tiketmu di bawah.
+            </p>
         </div>
 
+        {/* SECTION REKOMENDASI */}
         <div style={{marginBottom: '80px'}}>
             <div style={styles.headerRow}>
                 <h3 style={styles.sectionTitle}>Rekomendasi Untukmu</h3>
@@ -94,22 +115,29 @@ const UserDashboard = () => {
             </div>
         </div>
 
+        {/* SECTION TIKET SAYA */}
         <div style={{marginBottom: '40px'}}>
              <h3 style={styles.sectionTitle}>Tiket Saya</h3>
              {latestTicket ? (
                 <>
                     <p style={{color: '#9CA3AF', marginTop: '-10px', marginBottom: '30px'}}>Kamu Punya Tiket Aktif</p>
                     <TicketCard 
-                        title={ticketToShow.title} date={ticketToShow.date} location={ticketToShow.location}
-                        image={ticketToShow.image} onAction={handleViewTicket} 
+                        title={ticketToShow.title} 
+                        date={ticketToShow.date} 
+                        location={ticketToShow.location}
+                        image={ticketToShow.image} 
+                        onAction={handleViewTicket} 
                     />
                 </>
              ) : (
-                <div style={{padding: '40px', background: '#1F2937', borderRadius: '12px', textAlign: 'center', color: '#9CA3AF'}}>Belum ada tiket yang dibeli.</div>
+                <div style={{padding: '40px', background: '#1F2937', borderRadius: '12px', textAlign: 'center', color: '#9CA3AF'}}>
+                    Belum ada tiket yang dibeli.
+                </div>
              )}
         </div>
       </div> 
       
+      {/* SECTION UPCOMING */}
       <div style={styles.yellowSection}>
         <div className="container">
             <h3 style={{...styles.sectionTitle, color: 'black'}}>Upcoming Events</h3>
@@ -123,6 +151,7 @@ const UserDashboard = () => {
   );
 };
 
+// STYLES
 const styles = {
   heroBanner: { width: '100%', height: '250px', backgroundImage: 'linear-gradient(to bottom, rgba(11, 17, 32, 0.2), #0B1120), url(https://placehold.co/1200x400/222/F59E0B?text=Dashboard+Banner)', backgroundSize: 'cover', backgroundPosition: 'center', borderBottom: '1px solid #1f2937' },
   headerRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },

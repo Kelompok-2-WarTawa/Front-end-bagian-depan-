@@ -86,6 +86,23 @@ const EventDetail = () => {
             </div>
           </div>
 
+          {/* SECTION 3: TERMS AND CONDITION */}
+          <div style={styles.card}>
+            <div style={styles.cardHeader}>
+                <span style={{fontSize: '20px', marginRight: '10px'}}>📄</span> 
+                Terms and Condition
+            </div>
+            <div style={styles.cardBody}>
+                <ol style={{paddingLeft: '20px', margin: 0}}>
+                    {eventData.terms.map((term, index) => (
+                        <li key={index} style={{marginBottom: '8px', fontSize: '14px', lineHeight: '1.5'}}>
+                            {term}
+                        </li>
+                    ))}
+                </ol>
+            </div>
+          </div>
+
           {/* SECTION 2: TICKET (SUDAH DISESUAIKAN UNTUK 3 KATEGORI) */}
           <div style={styles.card}>
             <div style={styles.cardHeader}>
@@ -126,23 +143,6 @@ const EventDetail = () => {
                 >
                     Buy Ticket Now
                 </button>
-            </div>
-          </div>
-
-          {/* SECTION 3: TERMS AND CONDITION */}
-          <div style={styles.card}>
-            <div style={styles.cardHeader}>
-                <span style={{fontSize: '20px', marginRight: '10px'}}>📄</span> 
-                Terms and Condition
-            </div>
-            <div style={styles.cardBody}>
-                <ol style={{paddingLeft: '20px', margin: 0}}>
-                    {eventData.terms.map((term, index) => (
-                        <li key={index} style={{marginBottom: '8px', fontSize: '14px', lineHeight: '1.5'}}>
-                            {term}
-                        </li>
-                    ))}
-                </ol>
             </div>
           </div>
 

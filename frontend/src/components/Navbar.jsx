@@ -1,7 +1,9 @@
+// src/components/Navbar.jsx
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoImg from '../assets/logo.png'; 
 import '../App.css'; 
+import { logoutUser } from '../utils/authStore'; // Import Logout dari Store
 
 const Navbar = ({ user }) => {
   const navigate = useNavigate();
@@ -10,9 +12,13 @@ const Navbar = ({ user }) => {
 
   const toggleDropdown = () => setIsOpen(!isOpen);
 
+  // Handle Logout yang sudah diupdate
   const handleLogout = () => {
+    logoutUser(); // Hapus sesi dari localStorage
     setIsOpen(false);
-    navigate('/login');
+    navigate('/login'); // Arahkan ke login
+    // Reload halaman opsional agar state di App.jsx ter-reset
+    window.location.reload(); 
   };
 
   // Navigasi ke Tab Pengaturan
@@ -26,6 +32,7 @@ const Navbar = ({ user }) => {
     navigate('/profile', { state: { defaultTab: 'profile' } });
   };
 
+  // Tutup dropdown jika klik di luar
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -65,12 +72,10 @@ const Navbar = ({ user }) => {
 
                 {isOpen && (
                   <div className="dropdown-menu">
-                    {/* Update onClick di sini */}
                     <div className="dropdown-item" onClick={handleGoToProfile}>
                       📄 Informasi Dasar
                     </div>
                     
-                    {/* Update onClick di sini */}
                     <div className="dropdown-item" onClick={handleGoToSettings}>
                       ⚙️ Pengaturan
                     </div>
