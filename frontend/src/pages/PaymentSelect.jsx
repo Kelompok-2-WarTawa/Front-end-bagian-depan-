@@ -1,25 +1,54 @@
 // src/pages/PaymentSelect.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // Tambah useEffect
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
+import { getTicketConfig } from '../utils/ticketStore'; // 1. Import Pengambil Data
 
 const PaymentSelect = () => {
   const navigate = useNavigate();
   const currentUser = { name: "Sutejo" };
 
-  // --- 1. STATE BARU (3 KATEGORI) ---
   const [qtyEarly, setQtyEarly] = useState(0);
   const [qtyPresale, setQtyPresale] = useState(0);
   const [qtyReguler, setQtyReguler] = useState(0);
 
-  // --- 2. HARGA BARU ---
-  const PRICE_EARLY = 50000;
-  const PRICE_PRESALE = 75000;
-  const PRICE_REGULER = 100000;
+  // --- 2. STATE UNTUK CONFIG (DEFAULT KOSONG DULU) ---
+  const [config, setConfig] = useState(null);
 
-  // --- 3. LOGIC COUNTER BARU ---
+  // --- 3. AMBIL DATA DARI DATABASE SAAT LOAD ---
+  useEffect(() => {
+    const data = getTicketConfig();
+    
+    // Konversi string tanggal dari localStorage kembali jadi Objek Date
+    // Agar bisa dibandingkan ( < atau > )
+    const parsedData = {
+        early: { ...data.early, start: new Date(data.early.start), end: new Date(data.early.end) },
+        presale: { ...data.presale, start: new Date(data.presale.start), end: new Date(data.presale.end) },
+        reguler: { ...data.reguler, start: new Date(data.reguler.start), end: new Date(data.reguler.end) }
+    };
+    
+    setConfig(parsedData);
+  }, []);
+
+  // Kalau data belum siap, jangan render dulu
+  if (!config) return null; 
+
+  // --- 4. LOGIC DI BAWAH INI SAMA PERSIS, TAPI PAKAI 'config' DARI STATE ---
+  
+  const getTicketStatus = (type) => {
+    const now = new Date(); 
+    const schedule = config[type]; // config diambil dari state
+
+    if (now < schedule.start) return { status: 'upcoming', label: 'Belum Dibuka', color: '#3B82F6' };
+    if (now > schedule.end) return { status: 'ended', label: 'Sudah Berakhir', color: '#EF4444' };
+    return { status: 'active', label: 'Tersedia', color: '#10B981' };
+  };
+
   const handleQtyChange = (type, action) => {
+    const statusInfo = getTicketStatus(type);
+    if (statusInfo.status !== 'active') return; 
+
     if (type === 'early') {
       if (action === 'inc') setQtyEarly(qtyEarly + 1);
       if (action === 'dec' && qtyEarly > 0) setQtyEarly(qtyEarly - 1);
@@ -34,11 +63,50 @@ const PaymentSelect = () => {
     }
   };
 
-  // Hitung Total Bayar
-  const totalBayar = (qtyEarly * PRICE_EARLY) + (qtyPresale * PRICE_PRESALE) + (qtyReguler * PRICE_REGULER);
+  const totalBayar = (qtyEarly * config.early.price) + (qtyPresale * config.presale.price) + (qtyReguler * config.reguler.price);
 
   const formatRupiah = (number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
+  };
+
+  const renderTicketCard = (type, title, description, qty) => {
+    const statusInfo = getTicketStatus(type);
+    const isActive = statusInfo.status === 'active';
+
+    return (
+      <div style={{...styles.ticketCard, opacity: isActive ? 1 : 0.6}}> 
+        <div style={{marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'start'}}>
+          <div>
+            <h3 style={styles.ticketName}>{title}</h3>
+            <p style={{fontSize:'12px', color:'#666', margin:0}}>{description}</p>
+          </div>
+          <span style={{
+            fontSize: '10px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '4px',
+            backgroundColor: statusInfo.color, color: 'white'
+          }}>
+            {statusInfo.label}
+          </span>
+        </div>
+
+        <div style={styles.priceRow}>
+          <div style={styles.priceTag}>{formatRupiah(config[type].price)}</div>
+          
+          <div style={{...styles.counterBox, cursor: isActive ? 'default' : 'not-allowed'}}>
+            <button 
+              onClick={() => handleQtyChange(type, 'dec')} 
+              style={{...styles.counterBtn, color: isActive ? 'black' : '#ccc'}}
+              disabled={!isActive}
+            >-</button>
+            <span style={{...styles.counterNum, color: isActive ? 'black' : '#ccc'}}>{qty}</span>
+            <button 
+              onClick={() => handleQtyChange(type, 'inc')} 
+              style={{...styles.counterBtn, color: isActive ? 'black' : '#ccc'}}
+              disabled={!isActive}
+            >+</button>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -60,7 +128,6 @@ const PaymentSelect = () => {
           <div style={styles.stepItem}><span style={styles.stepCircle}>4</span> Checkout</div>
         </div>
 
-        {/* Main Card */}
         <div style={styles.mainCard}>
           <div style={styles.eventBanner}>
              <img src="https://placehold.co/800x300/111/F59E0B?text=EKRESA+CERITA+ANEHKU" alt="Event Banner" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
@@ -68,68 +135,18 @@ const PaymentSelect = () => {
 
           <h2 style={styles.pageTitle}>Select Category</h2>
 
-          {/* --- CARD 1: EARLY BIRD --- */}
-          <div style={styles.ticketCard}>
-            <div style={{marginBottom: '15px'}}>
-              <h3 style={styles.ticketName}>Early Bird</h3>
-              <p style={{fontSize:'12px', color:'#666', margin:0}}>Kuota terbatas! Paling hemat.</p>
-            </div>
-            <div style={styles.priceRow}>
-              <div style={styles.priceTag}>{formatRupiah(PRICE_EARLY)}</div>
-              <div style={styles.counterBox}>
-                <button onClick={() => handleQtyChange('early', 'dec')} style={styles.counterBtn}>-</button>
-                <span style={styles.counterNum}>{qtyEarly}</span>
-                <button onClick={() => handleQtyChange('early', 'inc')} style={styles.counterBtn}>+</button>
-              </div>
-            </div>
-          </div>
+          {/* Render Tiket dengan Data Dinamis */}
+          {renderTicketCard('early', 'Early Bird', 'Kuota terbatas! Paling hemat.', qtyEarly)}
+          {renderTicketCard('presale', 'Presale', 'Harga spesial sebelum harga normal.', qtyPresale)}
+          {renderTicketCard('reguler', 'Reguler', 'Harga normal on the spot / H-1.', qtyReguler)}
 
-          {/* --- CARD 2: PRESALE --- */}
-          <div style={styles.ticketCard}>
-            <div style={{marginBottom: '15px'}}>
-              <h3 style={styles.ticketName}>Presale</h3>
-              <p style={{fontSize:'12px', color:'#666', margin:0}}>Harga spesial sebelum harga normal.</p>
-            </div>
-            <div style={styles.priceRow}>
-              <div style={styles.priceTag}>{formatRupiah(PRICE_PRESALE)}</div>
-              <div style={styles.counterBox}>
-                <button onClick={() => handleQtyChange('presale', 'dec')} style={styles.counterBtn}>-</button>
-                <span style={styles.counterNum}>{qtyPresale}</span>
-                <button onClick={() => handleQtyChange('presale', 'inc')} style={styles.counterBtn}>+</button>
-              </div>
-            </div>
-          </div>
-
-          {/* --- CARD 3: REGULER --- */}
-          <div style={styles.ticketCard}>
-            <div style={{marginBottom: '15px'}}>
-              <h3 style={styles.ticketName}>Reguler</h3>
-              <p style={{fontSize:'12px', color:'#666', margin:0}}>Harga normal on the spot / H-1.</p>
-            </div>
-            <div style={styles.priceRow}>
-              <div style={styles.priceTag}>{formatRupiah(PRICE_REGULER)}</div>
-              <div style={styles.counterBox}>
-                <button onClick={() => handleQtyChange('reguler', 'dec')} style={styles.counterBtn}>-</button>
-                <span style={styles.counterNum}>{qtyReguler}</span>
-                <button onClick={() => handleQtyChange('reguler', 'inc')} style={styles.counterBtn}>+</button>
-              </div>
-            </div>
-          </div>
-
-
-          {/* --- SUMMARY SECTION --- */}
+          {/* SUMMARY */}
           <div style={styles.summaryBox}>
             <h3 style={{marginTop: 0, borderBottom: '1px solid #ccc', paddingBottom: '10px'}}>Rincian Ticket</h3>
             
-            {qtyEarly > 0 && (
-              <div style={styles.summaryRow}><span>Early Bird x {qtyEarly}</span><span>{formatRupiah(qtyEarly * PRICE_EARLY)}</span></div>
-            )}
-            {qtyPresale > 0 && (
-              <div style={styles.summaryRow}><span>Presale x {qtyPresale}</span><span>{formatRupiah(qtyPresale * PRICE_PRESALE)}</span></div>
-            )}
-            {qtyReguler > 0 && (
-              <div style={styles.summaryRow}><span>Reguler x {qtyReguler}</span><span>{formatRupiah(qtyReguler * PRICE_REGULER)}</span></div>
-            )}
+            {qtyEarly > 0 && <div style={styles.summaryRow}><span>Early Bird x {qtyEarly}</span><span>{formatRupiah(qtyEarly * config.early.price)}</span></div>}
+            {qtyPresale > 0 && <div style={styles.summaryRow}><span>Presale x {qtyPresale}</span><span>{formatRupiah(qtyPresale * config.presale.price)}</span></div>}
+            {qtyReguler > 0 && <div style={styles.summaryRow}><span>Reguler x {qtyReguler}</span><span>{formatRupiah(qtyReguler * config.reguler.price)}</span></div>}
 
             <div style={{...styles.summaryRow, marginTop: '15px', fontWeight: 'bold', fontSize: '18px'}}>
               <span>TOTAL</span>
@@ -139,7 +156,6 @@ const PaymentSelect = () => {
             <button 
               style={totalBayar === 0 ? styles.orderButtonDisabled : styles.orderButton} 
               disabled={totalBayar === 0}
-              // --- PENTING: KIRIM 3 VARIABEL INI KE HALAMAN BERIKUTNYA ---
               onClick={() => navigate('/payment/info', { 
                 state: { qtyEarly, qtyPresale, qtyReguler, totalHarga: totalBayar } 
               })}
@@ -155,7 +171,7 @@ const PaymentSelect = () => {
   );
 };
 
-// Styles (Tetap sama)
+// Styles (TETAP SAMA)
 const styles = {
   stepBar: { display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F59E0B', padding: '15px', borderRadius: '50px', marginBottom: '30px', color: '#553C00', flexWrap: 'wrap', maxWidth: '800px', width: '100%', margin: '0 auto 30px', gap: '15px' },
   stepItem: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' },
@@ -170,7 +186,7 @@ const styles = {
   priceRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', backgroundColor: '#1F2937', padding: '10px', borderRadius: '8px' },
   priceTag: { color: 'white', fontWeight: 'bold', fontSize: '18px' },
   counterBox: { display: 'flex', alignItems: 'center', backgroundColor: '#E5E7EB', borderRadius: '6px' },
-  counterBtn: { width: '50px', height: '50px', border: 'none', backgroundColor: 'transparent', fontWeight: 'bold', fontSize: '18px', cursor: 'pointer', color: 'black' },
+  counterBtn: { width: '50px', height: '50px', border: 'none', backgroundColor: 'transparent', fontWeight: 'bold', fontSize: '18px', color: 'black' },
   counterNum: { width: '30px', textAlign: 'center', fontWeight: 'bold', color: 'black' },
   summaryBox: { backgroundColor: '#FFFBEB', borderRadius: '12px', padding: '20px', marginTop: '30px', color: '#333' },
   summaryRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '10px' },
