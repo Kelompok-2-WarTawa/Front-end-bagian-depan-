@@ -17,7 +17,7 @@ const PaymentCheckout = () => {
     totalHarga = 0, 
     fullName = '-', 
     idNumber = '-', 
-    dob = '-', 
+    phoneNumber = '-', 
     email = '-', 
     paymentMethod = '-' 
   } = allData;
@@ -87,8 +87,8 @@ const PaymentCheckout = () => {
                 <span style={styles.value}>: {idNumber}</span>
             </div>
             <div style={styles.infoRow}>
-                <span style={styles.label}>Date of Birth</span>
-                <span style={styles.value}>: {dob}</span>
+                <span style={styles.label}>Phone Number</span>
+                <span style={styles.value}>: {phoneNumber}</span>
             </div>
             <div style={styles.infoRow}>
                 <span style={styles.label}>E-mail</span>

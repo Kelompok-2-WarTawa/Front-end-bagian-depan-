@@ -18,7 +18,7 @@ const PaymentInfo = () => {
   const [formData, setFormData] = useState({
     fullName: '',
     idNumber: '',
-    dob: '',
+    phoneNumber: '',
     email: '',
     agreed: false // Checkbox status
   });
@@ -102,10 +102,11 @@ const PaymentInfo = () => {
                 />
             </div>
             <div style={styles.inputGroup}>
-                <label style={styles.label}>Date of Birth</label>
+                <label style={styles.label}>Phone Number</label>
                 <input 
-                    type="date" name="dob" style={styles.input}
-                    value={formData.dob} onChange={handleChange}
+                    type="text" name="phoneNumber" style={styles.input} // Ubah name jadi phoneNumber
+                    value={formData.phoneNumber} onChange={handleChange}
+                    placeholder="Contoh: 081234567890"
                 />
             </div>
             <div style={styles.inputGroup}>
@@ -177,7 +178,6 @@ const PaymentInfo = () => {
   );
 };
 
-// --- STYLING (TIDAK PERLU DIUBAH, SUDAH BAGUS) ---
 const styles = {
   stepBar: {
     display: 'flex', justifyContent: 'center', alignItems: 'center',
