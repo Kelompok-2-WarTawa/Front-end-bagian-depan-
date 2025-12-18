@@ -1,169 +1,233 @@
 // src/pages/PaymentSelect.jsx
-import React, { useState, useEffect } from 'react'; // Tambah useEffect
+import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
-import { getTicketConfig } from '../utils/ticketStore'; // 1. Import Pengambil Data
+import { getTicketConfig } from '../utils/ticketStore';
+import { getCurrentUser } from '../utils/authStore';
 
 const PaymentSelect = () => {
   const navigate = useNavigate();
-  const currentUser = { name: "Sutejo" };
+  
+  const currentUser = getCurrentUser() || { name: "Guest" }; 
 
-  const [qtyEarly, setQtyEarly] = useState(0);
-  const [qtyPresale, setQtyPresale] = useState(0);
-  const [qtyReguler, setQtyReguler] = useState(0);
-
-  // --- 2. STATE UNTUK CONFIG (DEFAULT KOSONG DULU) ---
   const [config, setConfig] = useState(null);
+  const [selectedSeats, setSelectedSeats] = useState([]); 
+  const [activeCategory, setActiveCategory] = useState('reguler');
 
-  // --- 3. AMBIL DATA DARI DATABASE SAAT LOAD ---
+  const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J']; 
+  const cols = Array.from({ length: 20 }, (_, i) => i + 1);       
+
+  const bookedSeats = ['A5', 'A6', 'B10', 'C15', 'E1', 'E2', 'F20', 'J1', 'J2']; 
+
   useEffect(() => {
     const data = getTicketConfig();
-    
-    // Konversi string tanggal dari localStorage kembali jadi Objek Date
-    // Agar bisa dibandingkan ( < atau > )
     const parsedData = {
         early: { ...data.early, start: new Date(data.early.start), end: new Date(data.early.end) },
         presale: { ...data.presale, start: new Date(data.presale.start), end: new Date(data.presale.end) },
         reguler: { ...data.reguler, start: new Date(data.reguler.start), end: new Date(data.reguler.end) }
     };
-    
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setConfig(parsedData);
   }, []);
 
-  // Kalau data belum siap, jangan render dulu
-  if (!config) return null; 
+  if (!config) return null;
 
-  // --- 4. LOGIC DI BAWAH INI SAMA PERSIS, TAPI PAKAI 'config' DARI STATE ---
-  
-  const getTicketStatus = (type) => {
-    const now = new Date(); 
-    const schedule = config[type]; // config diambil dari state
+  const handleSeatClick = (seatId) => {
+    if (bookedSeats.includes(seatId)) return;
 
-    if (now < schedule.start) return { status: 'upcoming', label: 'Belum Dibuka', color: '#3B82F6' };
-    if (now > schedule.end) return { status: 'ended', label: 'Sudah Berakhir', color: '#EF4444' };
-    return { status: 'active', label: 'Tersedia', color: '#10B981' };
-  };
+    const statusInfo = getTicketStatus(activeCategory);
+    if (statusInfo.status !== 'active') {
+      alert(`Maaf, tiket kategori ${activeCategory} belum dibuka atau sudah habis.`);
+      return;
+    }
 
-  const handleQtyChange = (type, action) => {
-    const statusInfo = getTicketStatus(type);
-    if (statusInfo.status !== 'active') return; 
-
-    if (type === 'early') {
-      if (action === 'inc') setQtyEarly(qtyEarly + 1);
-      if (action === 'dec' && qtyEarly > 0) setQtyEarly(qtyEarly - 1);
-    } 
-    else if (type === 'presale') {
-      if (action === 'inc') setQtyPresale(qtyPresale + 1);
-      if (action === 'dec' && qtyPresale > 0) setQtyPresale(qtyPresale - 1);
-    } 
-    else if (type === 'reguler') {
-      if (action === 'inc') setQtyReguler(qtyReguler + 1);
-      if (action === 'dec' && qtyReguler > 0) setQtyReguler(qtyReguler - 1);
+    if (selectedSeats.includes(seatId)) {
+      setSelectedSeats(selectedSeats.filter(id => id !== seatId));
+    } else {
+      setSelectedSeats([...selectedSeats, seatId]);
     }
   };
 
-  const totalBayar = (qtyEarly * config.early.price) + (qtyPresale * config.presale.price) + (qtyReguler * config.reguler.price);
+  const getTicketStatus = (type) => {
+    const now = new Date(); 
+    const schedule = config[type];
+    if (now < schedule.start) return { status: 'upcoming', label: 'Belum Dibuka' };
+    if (now > schedule.end) return { status: 'ended', label: 'Sudah Berakhir' };
+    return { status: 'active', label: 'Tersedia' };
+  };
+
+  const pricePerTicket = config[activeCategory].price;
+  const totalBayar = selectedSeats.length * pricePerTicket;
 
   const formatRupiah = (number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
   };
 
-  const renderTicketCard = (type, title, description, qty) => {
-    const statusInfo = getTicketStatus(type);
-    const isActive = statusInfo.status === 'active';
-
-    return (
-      <div style={{...styles.ticketCard, opacity: isActive ? 1 : 0.6}}> 
-        <div style={{marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'start'}}>
-          <div>
-            <h3 style={styles.ticketName}>{title}</h3>
-            <p style={{fontSize:'12px', color:'#666', margin:0}}>{description}</p>
-          </div>
-          <span style={{
-            fontSize: '10px', fontWeight: 'bold', padding: '4px 8px', borderRadius: '4px',
-            backgroundColor: statusInfo.color, color: 'white'
-          }}>
-            {statusInfo.label}
-          </span>
-        </div>
-
-        <div style={styles.priceRow}>
-          <div style={styles.priceTag}>{formatRupiah(config[type].price)}</div>
-          
-          <div style={{...styles.counterBox, cursor: isActive ? 'default' : 'not-allowed'}}>
-            <button 
-              onClick={() => handleQtyChange(type, 'dec')} 
-              style={{...styles.counterBtn, color: isActive ? 'black' : '#ccc'}}
-              disabled={!isActive}
-            >-</button>
-            <span style={{...styles.counterNum, color: isActive ? 'black' : '#ccc'}}>{qty}</span>
-            <button 
-              onClick={() => handleQtyChange(type, 'inc')} 
-              style={{...styles.counterBtn, color: isActive ? 'black' : '#ccc'}}
-              disabled={!isActive}
-            >+</button>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
   return (
     <>
-      <Navbar user={currentUser} />
+    {/* Navbar akan menampilkan nama User asli */}
+      <Navbar user={currentUser} /> 
 
-      <div className="container" style={{ padding: '40px 20px' }}>
+      <div className="container" style={{ padding: '40px 20px', minHeight: '80vh' }}>
         
         {/* Step Indicator */}
         <div style={styles.stepBar}>
           <div style={{...styles.stepItem, fontWeight: 'bold', color: 'black'}}>
-            <span style={styles.stepCircleActive}>1</span> Select Category
+            <span style={styles.stepCircleActive}>1</span> Select Seat
           </div>
           <span style={styles.separator}>›</span>
-          <div style={styles.stepItem}><span style={styles.stepCircle}>2</span> Personal Information</div>
+          <div style={styles.stepItem}><span style={styles.stepCircle}>2</span> Personal Info</div>
           <span style={styles.separator}>›</span>
           <div style={styles.stepItem}><span style={styles.stepCircle}>3</span> Confirmation</div>
           <span style={styles.separator}>›</span>
           <div style={styles.stepItem}><span style={styles.stepCircle}>4</span> Checkout</div>
         </div>
 
-        <div style={styles.mainCard}>
-          <div style={styles.eventBanner}>
-             <img src="https://placehold.co/800x300/111/F59E0B?text=EKRESA+CERITA+ANEHKU" alt="Event Banner" style={{width: '100%', height: '100%', objectFit: 'cover'}} />
-          </div>
+        <div style={styles.layoutGrid}>
+          
+          {/* DENAH KURSI */}
+          <div style={styles.leftPanel}>
+            <h2 style={{marginTop:0, marginBottom: '20px'}}>Pilih Kursi Anda</h2>
+            <div style={styles.screen}>LAYAR PANGGUNG</div>
 
-          <h2 style={styles.pageTitle}>Select Category</h2>
+            <div style={{overflowX: 'auto', paddingBottom: '10px'}}>
+              <div style={styles.seatContainer}>
+                {rows.map(row => (
+                  <div key={row} style={styles.seatRow}>
+                    {cols.map(col => {
+                      const seatId = `${row}${col}`;
+                      const isBooked = bookedSeats.includes(seatId);     
+                      const isSelected = selectedSeats.includes(seatId); 
 
-          {/* Render Tiket dengan Data Dinamis */}
-          {renderTicketCard('early', 'Early Bird', 'Kuota terbatas! Paling hemat.', qtyEarly)}
-          {renderTicketCard('presale', 'Presale', 'Harga spesial sebelum harga normal.', qtyPresale)}
-          {renderTicketCard('reguler', 'Reguler', 'Harga normal on the spot / H-1.', qtyReguler)}
+                      let bgColor = '#10B981'; 
+                      let textColor = 'white';
+                      let borderColor = '#059669';
+                      let cursor = 'pointer';
 
-          {/* SUMMARY */}
-          <div style={styles.summaryBox}>
-            <h3 style={{marginTop: 0, borderBottom: '1px solid #ccc', paddingBottom: '10px'}}>Rincian Ticket</h3>
-            
-            {qtyEarly > 0 && <div style={styles.summaryRow}><span>Early Bird x {qtyEarly}</span><span>{formatRupiah(qtyEarly * config.early.price)}</span></div>}
-            {qtyPresale > 0 && <div style={styles.summaryRow}><span>Presale x {qtyPresale}</span><span>{formatRupiah(qtyPresale * config.presale.price)}</span></div>}
-            {qtyReguler > 0 && <div style={styles.summaryRow}><span>Reguler x {qtyReguler}</span><span>{formatRupiah(qtyReguler * config.reguler.price)}</span></div>}
+                      if (isBooked) {
+                        bgColor = '#374151'; 
+                        textColor = '#9CA3AF';
+                        borderColor = '#1F2937';
+                        cursor = 'not-allowed';
+                      } else if (isSelected) {
+                        bgColor = '#F59E0B';
+                        textColor = 'black';
+                        borderColor = '#D97706';
+                      }
 
-            <div style={{...styles.summaryRow, marginTop: '15px', fontWeight: 'bold', fontSize: '18px'}}>
-              <span>TOTAL</span>
-              <span>{formatRupiah(totalBayar)}</span>
+                      return (
+                        <div 
+                          key={seatId} 
+                          onClick={() => handleSeatClick(seatId)}
+                          title={isBooked ? `Kursi ${seatId} Tidak Tersedia` : `Pilih Kursi ${seatId}`}
+                          style={{
+                            ...styles.seat,
+                            backgroundColor: bgColor,
+                            color: textColor,
+                            border: `1px solid ${borderColor}`,
+                            cursor: cursor
+                          }}
+                        >
+                          {seatId}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <button 
-              style={totalBayar === 0 ? styles.orderButtonDisabled : styles.orderButton} 
-              disabled={totalBayar === 0}
-              onClick={() => navigate('/payment/info', { 
-                state: { qtyEarly, qtyPresale, qtyReguler, totalHarga: totalBayar } 
-              })}
-            >
-              Order Now
-            </button>
+            <div style={styles.legend}>
+              <div style={styles.legendItem}>
+                <div style={{...styles.seatBox, background: '#10B981'}}></div> Tersedia (Hijau)
+              </div>
+              <div style={styles.legendItem}>
+                <div style={{...styles.seatBox, background: '#F59E0B'}}></div> Dipilih (Kuning)
+              </div>
+              <div style={styles.legendItem}>
+                <div style={{...styles.seatBox, background: '#374151'}}></div> Tidak Tersedia (Hitam)
+              </div>
+            </div>
           </div>
 
+          {/* KOLOM KANAN */}
+          <div style={styles.rightPanel}>
+            <div style={{marginBottom: '20px'}}>
+              <h3 style={{marginTop: 0}}>Kategori Tiket</h3>
+              <div style={styles.categoryList}>
+                {['early', 'presale', 'reguler'].map(cat => {
+                   const status = getTicketStatus(cat);
+                   const isActive = activeCategory === cat;
+                   const isAvailable = status.status === 'active';
+
+                   return (
+                     <div 
+                        key={cat}
+                        onClick={() => {
+                          if (isAvailable) {
+                            setActiveCategory(cat);
+                            setSelectedSeats([]); 
+                          }
+                        }}
+                        style={{
+                          ...styles.categoryCard,
+                          border: isActive ? '2px solid #F59E0B' : '1px solid #374151',
+                          opacity: isAvailable ? 1 : 0.5,
+                          cursor: isAvailable ? 'pointer' : 'not-allowed'
+                        }}
+                     >
+                       <div style={{display:'flex', justifyContent:'space-between'}}>
+                         <span style={{fontWeight:'bold', textTransform: 'capitalize'}}>{cat} Bird</span>
+                         <span style={{fontSize:'12px', background: isAvailable ? '#10B981' : '#EF4444', color:'white', padding:'2px 6px', borderRadius:'4px'}}>
+                           {status.label}
+                         </span>
+                       </div>
+                       <div style={{color: '#F59E0B', fontWeight:'bold', marginTop:'5px'}}>
+                         {formatRupiah(config[cat].price)}
+                       </div>
+                     </div>
+                   )
+                })}
+              </div>
+            </div>
+
+            <div style={styles.summaryBox}>
+              <h3 style={{marginTop: 0, borderBottom: '1px solid #555', paddingBottom: '10px', color: 'white'}}>Rincian Pesanan</h3>
+              
+              <div style={styles.summaryRow}>
+                <span style={{color:'#D1D5DB'}}>Kategori</span>
+                <span style={{color:'white', fontWeight:'bold', textTransform:'capitalize'}}>{activeCategory}</span>
+              </div>
+              
+              <div style={styles.summaryRow}>
+                <span style={{color:'#D1D5DB'}}>Kursi ({selectedSeats.length})</span>
+                <div style={{textAlign: 'right', maxWidth: '150px', color:'#F59E0B', fontWeight:'bold', fontSize: '13px', lineHeight: '1.4'}}>
+                  {selectedSeats.length > 0 ? selectedSeats.join(', ') : '-'}
+                </div>
+              </div>
+
+              <div style={{...styles.summaryRow, marginTop: '15px', paddingTop:'15px', borderTop:'1px dashed #555', fontSize:'18px'}}>
+                <span style={{color:'white', fontWeight:'bold'}}>TOTAL</span>
+                <span style={{color:'#F59E0B', fontWeight:'bold'}}>{formatRupiah(totalBayar)}</span>
+              </div>
+
+              <button 
+                style={selectedSeats.length === 0 ? styles.orderButtonDisabled : styles.orderButton} 
+                disabled={selectedSeats.length === 0}
+                onClick={() => navigate('/payment/info', { 
+                  state: { 
+                    selectedCategory: activeCategory,
+                    selectedSeats: selectedSeats, 
+                    totalHarga: totalBayar 
+                  } 
+                })}
+              >
+                Lanjut Pembayaran
+              </button>
+            </div>
+
+          </div>
         </div>
       </div>
       <Footer />
@@ -171,27 +235,28 @@ const PaymentSelect = () => {
   );
 };
 
-// Styles (TETAP SAMA)
 const styles = {
   stepBar: { display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F59E0B', padding: '15px', borderRadius: '50px', marginBottom: '30px', color: '#553C00', flexWrap: 'wrap', maxWidth: '800px', width: '100%', margin: '0 auto 30px', gap: '15px' },
   stepItem: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' },
   separator: { fontSize: '24px', fontWeight: 'bold', color: '#553C00', marginTop: '-4px' },
   stepCircleActive: { width: '28px', height: '28px', backgroundColor: 'black', color: '#F59E0B', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: '14px' },
   stepCircle: { width: '26px', height: '26px', border: '2px solid #553C00', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: '14px' },
-  mainCard: { backgroundColor: '#F59E0B', borderRadius: '16px', padding: '20px', maxWidth: '800px', margin: '0 auto', boxShadow: '0 4px 20px rgba(0,0,0,0.3)' },
-  eventBanner: { height: '200px', borderRadius: '12px', overflow: 'hidden', marginBottom: '20px' },
-  pageTitle: { textAlign: 'center', color: 'black', fontSize: '28px', marginBottom: '20px' },
-  ticketCard: { backgroundColor: '#FFFBEB', borderRadius: '12px', padding: '20px', marginBottom: '20px', color: '#333' },
-  ticketName: { margin: '0 0 5px 0', fontSize: '22px', fontWeight: 'bold' },
-  priceRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px', backgroundColor: '#1F2937', padding: '10px', borderRadius: '8px' },
-  priceTag: { color: 'white', fontWeight: 'bold', fontSize: '18px' },
-  counterBox: { display: 'flex', alignItems: 'center', backgroundColor: '#E5E7EB', borderRadius: '6px' },
-  counterBtn: { width: '50px', height: '50px', border: 'none', backgroundColor: 'transparent', fontWeight: 'bold', fontSize: '18px', color: 'black' },
-  counterNum: { width: '30px', textAlign: 'center', fontWeight: 'bold', color: 'black' },
-  summaryBox: { backgroundColor: '#FFFBEB', borderRadius: '12px', padding: '20px', marginTop: '30px', color: '#333' },
-  summaryRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '10px' },
-  orderButton: { width: '100%', padding: '15px', backgroundColor: '#1F2937', color: 'white', border: 'none', borderRadius: '8px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px', transition: '0.3s' },
-  orderButtonDisabled: { width: '100%', padding: '15px', backgroundColor: '#6B7280', color: '#D1D5DB', border: 'none', borderRadius: '8px', fontSize: '18px', fontWeight: 'bold', cursor: 'not-allowed', marginTop: '20px' }
+  layoutGrid: { display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '30px', alignItems: 'start' },
+  leftPanel: { backgroundColor: 'white', padding: '30px', borderRadius: '12px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', textAlign: 'center' },
+  screen: { backgroundColor: '#374151', color: 'white', padding: '10px', marginBottom: '40px', borderRadius: '8px', fontWeight: 'bold', letterSpacing: '2px', width: '80%', margin: '0 auto 40px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.3)' },
+  seatContainer: { display: 'inline-flex', flexDirection: 'column', gap: '8px', alignItems: 'center' },
+  seatRow: { display: 'flex', gap: '8px' },
+  seat: { width: '35px', height: '35px', borderRadius: '6px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '10px', fontWeight: 'bold', transition: '0.2s', userSelect: 'none' },
+  legend: { display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '30px', flexWrap: 'wrap' },
+  legendItem: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#666' },
+  seatBox: { width: '20px', height: '20px', borderRadius: '4px' },
+  rightPanel: { display: 'flex', flexDirection: 'column', gap: '20px' },
+  categoryList: { display: 'flex', flexDirection: 'column', gap: '10px' },
+  categoryCard: { backgroundColor: '#1F2937', padding: '15px', borderRadius: '8px', color: 'white', transition: '0.2s' },
+  summaryBox: { backgroundColor: '#111827', borderRadius: '12px', padding: '20px', color: 'white' },
+  summaryRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '14px' },
+  orderButton: { width: '100%', padding: '15px', backgroundColor: '#F59E0B', color: 'black', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px', transition: '0.3s' },
+  orderButtonDisabled: { width: '100%', padding: '15px', backgroundColor: '#374151', color: '#6B7280', border: 'none', borderRadius: '8px', fontSize: '16px', fontWeight: 'bold', cursor: 'not-allowed', marginTop: '20px' }
 };
 
 export default PaymentSelect;

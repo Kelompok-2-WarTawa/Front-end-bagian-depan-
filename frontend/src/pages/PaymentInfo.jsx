@@ -3,179 +3,103 @@ import React, { useState } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { getCurrentUser } from '../utils/authStore';
 
 const PaymentInfo = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const currentUser = { name: "Sutejo" };
+  
+  const currentUser = getCurrentUser() || { name: "Guest", email: "", phone: "" };
 
-  // --- 1. AMBIL DATA DARI HALAMAN SEBELUMNYA (UPDATE 3 KATEGORI) ---
   const { 
-    qtyEarly = 0,    // Baru
-    qtyPresale = 0,  // Baru
-    qtyReguler = 0, 
+    selectedCategory = '-', 
+    selectedSeats = [], 
     totalHarga = 0 
   } = location.state || {};
 
-  // State untuk menyimpan input user
+  // Isi form otomatis dengan data currentUser
   const [formData, setFormData] = useState({
-    fullName: '',
-    idNumber: '',
-    phoneNumber: '', // Sesuai revisi sebelumnya (No HP)
-    email: '',
+    fullName: currentUser.name !== "Guest" ? currentUser.name : '', 
+    idNumber: '', 
+    phoneNumber: currentUser.phone || '', 
+    email: currentUser.email || '', 
     agreed: false
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleCheckbox = (e) => setFormData({ ...formData, agreed: e.target.checked });
 
-  const handleCheckbox = (e) => {
-    setFormData({ ...formData, agreed: e.target.checked });
-  };
-
-  // --- 2. LOGIC TOMBOL NEXT (UPDATE KIRIM 3 DATA) ---
   const handleNext = () => {
     if (!formData.agreed) {
       alert("Harap setujui Syarat & Ketentuan terlebih dahulu!");
       return;
     }
     
-    // Kirim SEMUA data ke halaman Konfirmasi
     navigate('/payment/confirmation', {
       state: {
-        qtyEarly,    // Kirim
-        qtyPresale,  // Kirim
-        qtyReguler,  // Kirim
+        selectedCategory, 
+        selectedSeats,    
         totalHarga, 
         ...formData 
       }
     });
   };
 
-  const formatRupiah = (number) => {
-    return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
-  };
+  const formatRupiah = (number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
 
   return (
     <>
       <Navbar user={currentUser} />
-
       <div className="container" style={{ padding: '40px 20px' }}>
         
         {/* Step Indicator */}
         <div style={styles.stepBar}>
-          <div style={styles.stepItem}><span style={styles.stepCircleDone}>✓</span> Select Category</div>
+          <div style={styles.stepItem}><span style={styles.stepCircleDone}>✓</span> Select Seat</div>
           <span style={styles.separator}>›</span>
-          <div style={{...styles.stepItem, fontWeight: 'bold', color: 'black'}}>
-            <span style={styles.stepCircleActive}>2</span> Personal Information
-          </div>
+          <div style={{...styles.stepItem, fontWeight: 'bold', color: 'black'}}><span style={styles.stepCircleActive}>2</span> Personal Info</div>
           <span style={styles.separator}>›</span>
           <div style={styles.stepItem}><span style={styles.stepCircle}>3</span> Confirmation</div>
           <span style={styles.separator}>›</span>
           <div style={styles.stepItem}><span style={styles.stepCircle}>4</span> Checkout</div>
         </div>
 
-        {/* Main Card */}
         <div style={styles.mainCard}>
           <h2 style={styles.pageTitle}>Personal Information</h2>
-
           <div style={styles.formContainer}>
-            <div style={styles.inputGroup}>
-                <label style={styles.label}>Full Name</label>
-                <input 
-                    type="text" name="fullName" style={styles.input}
-                    value={formData.fullName} onChange={handleChange}
-                    placeholder="Sesuai KTP"
-                />
-            </div>
-            <div style={styles.inputGroup}>
-                <label style={styles.label}>ID Number (KTP/Driving License)</label>
-                <input 
-                    type="text" name="idNumber" style={styles.input}
-                    value={formData.idNumber} onChange={handleChange}
-                    placeholder="Contoh: 3201..."
-                />
-            </div>
-            <div style={styles.inputGroup}>
-                <label style={styles.label}>Phone Number</label>
-                <input 
-                    type="text" name="phoneNumber" style={styles.input}
-                    value={formData.phoneNumber} onChange={handleChange}
-                    placeholder="Contoh: 0812..."
-                />
-            </div>
-            <div style={styles.inputGroup}>
-                <label style={styles.label}>E-mail</label>
-                <input 
-                    type="email" name="email" style={styles.input}
-                    value={formData.email} onChange={handleChange}
-                    placeholder="email@example.com"
-                />
-            </div>
-
-            {/* Checkbox */}
+            <div style={styles.inputGroup}><label style={styles.label}>Full Name</label><input type="text" name="fullName" style={styles.input} value={formData.fullName} onChange={handleChange} placeholder="Sesuai KTP"/></div>
+            <div style={styles.inputGroup}><label style={styles.label}>ID Number</label><input type="text" name="idNumber" style={styles.input} value={formData.idNumber} onChange={handleChange} placeholder="NIK / SIM"/></div>
+            <div style={styles.inputGroup}><label style={styles.label}>Phone Number</label><input type="text" name="phoneNumber" style={styles.input} value={formData.phoneNumber} onChange={handleChange} placeholder="0812..."/></div>
+            <div style={styles.inputGroup}><label style={styles.label}>E-mail</label><input type="email" name="email" style={styles.input} value={formData.email} onChange={handleChange} placeholder="email@example.com"/></div>
             <div style={styles.checkboxGroup}>
-                <input 
-                    type="checkbox" id="agreed"
-                    checked={formData.agreed} onChange={handleCheckbox}
-                    style={{width: '20px', height: '20px', cursor: 'pointer'}}
-                />
-                <label htmlFor="agreed" style={{marginLeft: '10px', fontSize: '14px', color: '#333'}}>
-                    Dengan mengklik "Lanjut", kamu menyetujui Syarat & Ketentuan dan Kebijakan yang berlaku
-                </label>
+                <input type="checkbox" id="agreed" checked={formData.agreed} onChange={handleCheckbox} style={{width: '20px', height: '20px', cursor: 'pointer'}}/>
+                <label htmlFor="agreed" style={{marginLeft: '10px', fontSize: '14px', color: '#333'}}>Saya menyetujui Syarat & Ketentuan.</label>
             </div>
           </div>
-
           <div style={styles.buttonRow}>
-            <button onClick={() => navigate('/payment/select')} style={styles.btnBack}>Back</button>
+            <button onClick={() => navigate(-1)} style={styles.btnBack}>Back</button>
             <button onClick={handleNext} style={styles.btnNext}>Next</button>
           </div>
         </div>
 
-        {/* --- 3. RINCIAN TICKET (SUDAH DIPERBAIKI UTK 3 KATEGORI) --- */}
         <div style={styles.summaryBoxOuter}>
-             <h3 style={{marginTop: 0, marginBottom: '15px', borderBottom: '1px solid #ccc', paddingBottom: '10px'}}>
-                Rincian Ticket
-             </h3>
-             
-             {qtyEarly > 0 && (
-               <div style={styles.summaryRow}>
-                  <span>Early Bird</span>
-                  <span>{qtyEarly} x</span>
-               </div>
-             )}
-
-             {qtyPresale > 0 && (
-               <div style={styles.summaryRow}>
-                  <span>Presale</span>
-                  <span>{qtyPresale} x</span>
-               </div>
-             )}
-             
-             {qtyReguler > 0 && (
-               <div style={styles.summaryRow}>
-                  <span>Reguler</span>
-                  <span>{qtyReguler} x</span>
-               </div>
-             )}
-
-             <hr style={{border: 'none', borderTop: '1px solid #ccc', margin: '15px 0'}}/>
-             
+             <h3 style={{marginTop: 0, marginBottom: '15px', borderBottom: '1px solid #ccc', paddingBottom: '10px'}}>Rincian Ticket</h3>
              <div style={styles.summaryRow}>
-                <span>TOTAL</span>
-                <span>{formatRupiah(totalHarga)}</span>
+                <span style={{textTransform:'capitalize'}}>Kategori {selectedCategory}</span>
+                <span>{selectedSeats.length} x</span>
              </div>
+             <div style={{...styles.summaryRow, fontSize:'13px', color:'#555', marginBottom:'15px'}}>
+                <span>Kursi:</span>
+                <span style={{textAlign:'right', maxWidth:'150px'}}>{selectedSeats.join(', ')}</span>
+             </div>
+             <hr style={{border: 'none', borderTop: '1px solid #ccc', margin: '15px 0'}}/>
+             <div style={styles.summaryRow}><span>TOTAL</span><span>{formatRupiah(totalHarga)}</span></div>
         </div>
-
       </div>
       <Footer />
     </>
   );
 };
 
-// --- STYLING (Tetap sama) ---
 const styles = {
   stepBar: { display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F59E0B', padding: '15px', borderRadius: '50px', marginBottom: '30px', color: '#553C00', flexWrap: 'wrap', maxWidth: '800px', width: '100%', margin: '0 auto 30px', gap: '15px' },
   stepItem: { display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px' },
