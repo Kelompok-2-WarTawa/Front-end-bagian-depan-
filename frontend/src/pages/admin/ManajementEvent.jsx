@@ -1,297 +1,249 @@
-import React, { useState } from 'react';
-import { getEvents, saveEvents } from '../../utils/eventStore';
+// src/pages/admin/ManajementEvent.jsx
+import React, { useState, useEffect } from 'react';
+import { getEvents, addEvent, updateEvent, deleteEvent } from '../../utils/eventStore';
 
 const ManajemenEvent = () => {
-  const [events, setEvents] = useState(() => getEvents());
-  const [showModal, setShowModal] = useState(false);
-  const [editId, setEditId] = useState(null);
-
-  // Field 'image' di sini
-  const defaultForm = {
+  const [events, setEvents] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  
+  const initialFormState = {
+    id: null,
     nama: '',
     talent: '',
     jadwal: '',
     jam: '',
     lokasi: '',
     kota: '',
+    price: '',
     status: 'Published',
-    image: ''
+    image: '' 
   };
 
-  const [formData, setFormData] = useState(defaultForm);
+  const [formData, setFormData] = useState(initialFormState);
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  useEffect(() => {
+    refreshData();
+  }, []);
+
+  const refreshData = () => {
+    setEvents(getEvents());
   };
 
-  // Upload Gambar & Konversi
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // --- FUNGSI BARU: HANDLE UPLOAD GAMBAR ---
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({ ...formData, image: reader.result });
+        // Hasil konversi gambar ke text (Base64) disimpan ke state
+        setFormData(prev => ({ ...prev, image: reader.result }));
       };
-      reader.readAsDataURL(file); 
+      reader.readAsDataURL(file);
     }
   };
+  // -----------------------------------------
 
-  // --- LOGIKA EDIT EVENT ---
-  const handleEditClick = (event) => {
-    setEditId(event.id);
+  const handleOpenAdd = () => {
     setFormData({
-      nama: event.nama,
-      talent: event.talent,
-      jadwal: event.jadwal,
-      jam: event.jam,
-      lokasi: event.lokasi,
-      kota: event.kota,
-      status: event.status,
-      image: event.image || '' 
+        ...initialFormState,
+        image: '' // Kosongkan awal agar user upload sendiri
     });
-    setShowModal(true);
+    setIsEditing(false);
+    setIsModalOpen(true);
   };
 
-  // --- LOGIKA SIMPAN ---
-  const handleSubmit = (e) => {
+  const handleOpenEdit = (event) => {
+    setFormData(event);
+    setIsEditing(true);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = (e) => {
     e.preventDefault();
-    let updatedEvents;
+    
+    const dataToSave = {
+        ...formData,
+        price: parseInt(formData.price) || 0,
+        // Jika user tidak upload gambar, pakai gambar default placeholder
+        image: formData.image || 'https://placehold.co/400x300/1a1a1a/F59E0B?text=No+Image'
+    };
 
-    if (editId) {
-      // MODE EDIT
-      updatedEvents = events.map((item) => 
-        item.id === editId ? { ...item, ...formData } : item
-      );
+    if (isEditing) {
+        updateEvent(dataToSave);
+        alert("Event berhasil diperbarui!");
     } else {
-      // MODE TAMBAH BARU
-      const newEvent = {
-        // eslint-disable-next-line react-hooks/purity
-        id: Date.now(),
-        ...formData
-      };
-      updatedEvents = [...events, newEvent];
+        addEvent(dataToSave);
+        alert("Event baru berhasil ditambahkan!");
     }
-
-    setEvents(updatedEvents);
-    saveEvents(updatedEvents);
-
-    resetForm();
-    alert(editId ? 'Event berhasil diperbarui!' : 'Event berhasil ditambahkan!');
+    
+    setIsModalOpen(false);
+    refreshData();
   };
 
   const handleDelete = (id) => {
-    if (window.confirm('Yakin ingin menghapus event ini?')) {
-      const updatedEvents = events.filter(event => event.id !== id);
-      setEvents(updatedEvents);
-      saveEvents(updatedEvents);
+    if (window.confirm("Yakin ingin menghapus event ini?")) {
+        deleteEvent(id);
+        refreshData();
     }
   };
 
-  const resetForm = () => {
-    setFormData(defaultForm);
-    setEditId(null);
-    setShowModal(false);
-  };
-
   return (
-    <div>
-      {/* Header */}
-      <div style={{ marginBottom: '30px' }}>
-        <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#111827', margin: 0 }}>Manajemen Event</h1>
-        <p style={{ color: '#6B7280', marginTop: '5px' }}>Kelola semua acara stand-up comedy Anda</p>
+    <div style={{ color: '#111827', padding: '20px' }}>
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <div>
+            <h1 style={{ fontSize: '28px', fontWeight: 'bold', margin: 0 }}>Manajemen Event</h1>
+            <p style={{ color: '#6B7280', marginTop: '5px' }}>Kelola jadwal stand-up comedy Anda di sini</p>
+        </div>
+        <button onClick={handleOpenAdd} style={styles.btnAdd}>+ Tambah Event</button>
       </div>
 
-      {/* Tombol Tambah */}
-      <button 
-        onClick={() => { resetForm(); setShowModal(true); }}
-        style={{
-          background: '#0B3996',
-          color: 'white',
-          border: 'none',
-          padding: '12px 24px',
-          borderRadius: '8px',
-          fontWeight: '600',
-          cursor: 'pointer',
-          marginBottom: '30px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px'
-        }}>
-        + Tambah Event Baru
-      </button>
-
-      {/* Tabel */}
-      <div style={{ 
-        background: 'white', borderRadius: '16px', 
-        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', overflow: 'hidden'
-      }}>
-        {events.length === 0 ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: '#6B7280' }}>Belum ada event.</div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ borderBottom: '1px solid #F3F4F6', color: '#9CA3AF', fontSize: '12px' }}>
-                <th style={{ padding: '20px', fontWeight: '600' }}>THUMBNAIL</th>
-                <th style={{ padding: '20px', fontWeight: '600' }}>NAMA EVENT</th>
-                <th style={{ padding: '20px', fontWeight: '600' }}>JADWAL</th>
-                <th style={{ padding: '20px', fontWeight: '600' }}>LOKASI</th>
-                <th style={{ padding: '20px', fontWeight: '600' }}>STATUS</th>
-                <th style={{ padding: '20px', fontWeight: '600' }}>AKSI</th>
-              </tr>
-            </thead>
-            <tbody>
-              {events.map((event) => (
-                <tr key={event.id} style={{ borderBottom: '1px solid #F9FAFB' }}>
-                  
-                  {/* TAMPILKAN GAMBAR DI TABEL */}
-                  <td style={{ padding: '20px' }}>
-                    {event.image ? (
-                      <img 
-                        src={event.image} 
-                        alt="Thumb" 
-                        style={{ width: '60px', height: '60px', borderRadius: '4px', objectFit: 'cover', border: '1px solid #ddd' }} 
-                      />
-                    ) : (
-                      <div style={{ width: '60px', height: '60px', background: '#D1D5DB', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#666' }}>No Img</div>
-                    )}
-                  </td>
-
-                  <td style={{ padding: '20px' }}>
-                    <div style={{ fontWeight: '700', color: '#111827', fontSize: '14px' }}>{event.nama}</div>
-                    <div style={{ fontSize: '12px', color: '#9CA3AF' }}>{event.talent}</div>
-                  </td>
-                  <td style={{ padding: '20px' }}>
-                    <div style={{ fontWeight: '600', color: '#111827', fontSize: '13px' }}>{event.jadwal}</div>
-                    <div style={{ fontSize: '12px', color: '#9CA3AF' }}>{event.jam} WIB</div>
-                  </td>
-                  <td style={{ padding: '20px' }}>
-                    <div style={{ fontWeight: '600', color: '#111827', fontSize: '13px' }}>{event.lokasi}</div>
-                    <div style={{ fontSize: '12px', color: '#9CA3AF' }}>{event.kota}</div>
-                  </td>
-                  <td style={{ padding: '20px' }}>
-                    <span style={{
-                      padding: '4px 12px', borderRadius: '20px', fontSize: '11px', fontWeight: '700',
-                      background: event.status === 'Cancelled' ? '#FEE2E2' : event.status === 'Draft' ? '#F3F4F6' : '#DCFCE7',
-                      color: event.status === 'Cancelled' ? '#991B1B' : event.status === 'Draft' ? '#374151' : '#166534'
-                    }}>
-                      {event.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '20px' }}>
-                    <div style={{ display: 'flex', gap: '15px', alignItems: 'center' }}>
-                      <span onClick={() => handleEditClick(event)} style={{ cursor: 'pointer', color: '#6B7280' }} title="Edit">✏️</span>
-                      <span onClick={() => handleDelete(event.id)} style={{ cursor: 'pointer', color: '#EF4444' }} title="Hapus">🗑️</span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {/* MODAL FORM */}
-      {showModal && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-          background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
-        }}>
-          <div style={{ background: 'white', padding: '30px', borderRadius: '12px', width: '500px', maxWidth: '90%', maxHeight: '90vh', overflowY: 'auto' }}>
-            
-            <h2 style={{ color: '#111827', marginTop: 0, marginBottom: '20px', fontSize: '20px' }}>
-              {editId ? 'Edit Event' : 'Tambah Event Baru'}
-            </h2>
-            
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              
-              {/* INPUT GAMBAR DI DALAM FORM */}
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>Thumbnail Event</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  {/* Preview Gambar Kecil */}
-                  {formData.image && (
+      <div style={styles.tableContainer}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+          <thead style={{ background: '#F9FAFB', borderBottom: '1px solid #E5E7EB' }}>
+            <tr>
+              <th style={styles.th}>EVENT & THUMBNAIL</th>
+              <th style={styles.th}>JADWAL</th>
+              <th style={styles.th}>LOKASI</th>
+              <th style={styles.th}>HARGA</th>
+              <th style={styles.th}>STATUS</th>
+              <th style={styles.th}>AKSI</th>
+            </tr>
+          </thead>
+          <tbody>
+            {events.map((ev) => (
+              <tr key={ev.id} style={{ borderBottom: '1px solid #E5E7EB' }}>
+                <td style={{...styles.td, display: 'flex', alignItems: 'center', gap: '10px'}}>
+                    {/* Tampilkan gambar kecil di tabel */}
                     <img 
-                      src={formData.image} 
-                      alt="Preview" 
-                      style={{ width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover', border: '1px solid #E5E7EB' }} 
+                        src={ev.image} 
+                        alt="thumb" 
+                        style={{width: '60px', height: '40px', borderRadius: '4px', objectFit: 'cover', backgroundColor: '#eee'}} 
                     />
-                  )}
-                  {/* Tombol Input File */}
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleImageUpload} 
-                    style={{ fontSize: '14px', color: '#6B7280' }} 
-                  />
-                </div>
-              </div>
+                    <div>
+                        <div style={{fontWeight: 'bold'}}>{ev.nama}</div>
+                        <div style={{fontSize: '12px', color: '#F59E0B'}}>{ev.talent}</div>
+                    </div>
+                </td>
+                <td style={styles.td}>{ev.jadwal} <br/><span style={{fontSize:'12px', color:'#666'}}>{ev.jam} WIB</span></td>
+                <td style={styles.td}>{ev.lokasi}, <br/>{ev.kota}</td>
+                <td style={styles.td}>Rp {parseInt(ev.price).toLocaleString('id-ID')}</td>
+                <td style={styles.td}>
+                    <span style={{
+                        padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 'bold',
+                        background: ev.status === 'Published' ? '#D1FAE5' : '#E5E7EB',
+                        color: ev.status === 'Published' ? '#065F46' : '#374151'
+                    }}>
+                        {ev.status}
+                    </span>
+                </td>
+                <td style={styles.td}>
+                  <button onClick={() => handleOpenEdit(ev)} style={styles.btnIcon}>✏️</button>
+                  <button onClick={() => handleDelete(ev.id)} style={styles.btnIcon}>🗑️</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>Nama Event</label>
-                <input required type="text" name="nama" value={formData.nama} onChange={handleInputChange} 
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', color: '#111827', background: 'white' }} />
-              </div>
+      {/* Modal Form */}
+      {isModalOpen && (
+        <div style={styles.modalOverlay}>
+            <div style={styles.modalContent}>
+                <h2 style={{marginTop: 0, marginBottom: '20px'}}>{isEditing ? 'Edit Event' : 'Tambah Event Baru'}</h2>
+                
+                <form onSubmit={handleSave}>
+                    
+                    {/* --- INPUT FILE GAMBAR --- */}
+                    <label style={styles.label}>Upload Thumbnail</label>
+                    <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={handleImageUpload} 
+                        style={styles.input} 
+                    />
+                    {/* Preview Gambar jika sudah dipilih */}
+                    {formData.image && (
+                        <div style={{marginTop: '10px', textAlign: 'center', background: '#f9f9f9', padding: '10px', borderRadius: '8px'}}>
+                            <p style={{fontSize: '12px', color: '#666', margin: '0 0 5px 0'}}>Preview:</p>
+                            <img src={formData.image} alt="Preview" style={{width: '100%', maxHeight: '150px', objectFit: 'contain', borderRadius: '6px'}} />
+                        </div>
+                    )}
+                    {/* ------------------------- */}
 
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>Talent / Komika</label>
-                <input required type="text" name="talent" value={formData.talent} onChange={handleInputChange} 
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', color: '#111827', background: 'white' }} />
-              </div>
+                    <label style={styles.label}>Nama Event</label>
+                    <input name="nama" value={formData.nama} onChange={handleChange} required style={styles.input} placeholder="Contoh: Stand Up Nite" />
+                    
+                    <label style={styles.label}>Nama Talent / Artis</label>
+                    <input name="talent" value={formData.talent} onChange={handleChange} required style={styles.input} placeholder="Contoh: Raditya Dika" />
 
-              <div style={{ display: 'flex', gap: '15px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>Tanggal</label>
-                  <input required type="date" name="jadwal" value={formData.jadwal} onChange={handleInputChange} 
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', color: '#111827', background: 'white' }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>Jam</label>
-                  <input required type="time" name="jam" value={formData.jam} onChange={handleInputChange} 
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', color: '#111827', background: 'white' }} />
-                </div>
-              </div>
+                    <div style={{display:'flex', gap:'15px'}}>
+                        <div style={{flex:1}}>
+                            <label style={styles.label}>Tanggal</label>
+                            <input type="date" name="jadwal" value={formData.jadwal} onChange={handleChange} required style={styles.input} />
+                        </div>
+                        <div style={{flex:1}}>
+                            <label style={styles.label}>Jam (WIB)</label>
+                            <input type="time" name="jam" value={formData.jam} onChange={handleChange} required style={styles.input} />
+                        </div>
+                    </div>
 
-              <div style={{ display: 'flex', gap: '15px' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>Lokasi</label>
-                  <input required type="text" name="lokasi" value={formData.lokasi} onChange={handleInputChange} 
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', color: '#111827', background: 'white' }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>Kota</label>
-                  <input required type="text" name="kota" value={formData.kota} onChange={handleInputChange} 
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', color: '#111827', background: 'white' }} />
-                </div>
-              </div>
+                    <div style={{display:'flex', gap:'15px'}}>
+                        <div style={{flex:1}}>
+                             <label style={styles.label}>Lokasi (Gedung)</label>
+                             <input name="lokasi" value={formData.lokasi} onChange={handleChange} required style={styles.input} placeholder="Gedung..." />
+                        </div>
+                        <div style={{flex:1}}>
+                             <label style={styles.label}>Kota</label>
+                             <input name="kota" value={formData.kota} onChange={handleChange} required style={styles.input} placeholder="Jakarta..." />
+                        </div>
+                    </div>
 
-              {/* DROPDOWN STATUS */}
-              <div>
-                <label style={{ display: 'block', marginBottom: '5px', fontSize: '14px', fontWeight: '500', color: '#111827' }}>Status Event</label>
-                <select name="status" value={formData.status} onChange={handleInputChange}
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', color: '#111827', background: 'white' }}>
-                  <option value="Published">Published (Tayang)</option>
-                  <option value="Draft">Draft (Disimpan)</option>
-                  <option value="Cancelled">Cancelled (Batal)</option>
-                </select>
-              </div>
+                    <div style={{display:'flex', gap:'15px'}}>
+                        <div style={{flex:1}}>
+                            <label style={styles.label}>Harga Tiket (Rp)</label>
+                            <input type="number" name="price" value={formData.price} onChange={handleChange} required style={styles.input} placeholder="150000" />
+                        </div>
+                        <div style={{flex:1}}>
+                            <label style={styles.label}>Status</label>
+                            <select name="status" value={formData.status} onChange={handleChange} style={styles.input}>
+                                <option value="Published">Published</option>
+                                <option value="Draft">Draft</option>
+                            </select>
+                        </div>
+                    </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '10px', justifyContent: 'flex-end' }}>
-                <button type="button" onClick={resetForm}
-                  style={{ background: 'transparent', border: '1px solid #D1D5DB', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', color: '#374151' }}>
-                  Batal
-                </button>
-                <button type="submit" 
-                  style={{ background: '#0B3996', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
-                  {editId ? 'Simpan Perubahan' : 'Simpan Event'}
-                </button>
-              </div>
-            </form>
-          </div>
+                    <div style={{marginTop: '25px', display:'flex', justifyContent:'end', gap:'10px'}}>
+                        <button type="button" onClick={() => setIsModalOpen(false)} style={styles.btnCancel}>Batal</button>
+                        <button type="submit" style={styles.btnSave}>Simpan Data</button>
+                    </div>
+                </form>
+            </div>
         </div>
       )}
     </div>
   );
+};
+
+const styles = {
+    btnAdd: { background: '#F59E0B', color: 'black', border: 'none', padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold', cursor: 'pointer' },
+    tableContainer: { background: 'white', borderRadius: '12px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', overflow: 'hidden', border: '1px solid #E5E7EB' },
+    th: { padding: '15px', fontSize: '13px', color: '#6B7280', fontWeight: 'bold' },
+    td: { padding: '15px', fontSize: '14px', color: '#1F2937' },
+    btnIcon: { cursor: 'pointer', border:'none', background:'none', fontSize:'18px', marginRight: '5px' },
+    
+    modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display:'flex', justifyContent:'center', alignItems:'center', zIndex: 1000 },
+    modalContent: { background: 'white', padding: '30px', borderRadius: '16px', width: '500px', maxWidth: '90%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' },
+    label: { display: 'block', marginBottom: '5px', fontWeight: '600', fontSize: '13px', marginTop: '15px', color: '#374151' },
+    input: { width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #D1D5DB', boxSizing: 'border-box', fontSize: '14px' },
+    btnCancel: { padding: '10px 20px', borderRadius: '8px', border: '1px solid #D1D5DB', background: 'white', cursor: 'pointer', fontWeight: '500' },
+    btnSave: { padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#F59E0B', color: 'black', fontWeight: 'bold', cursor: 'pointer' }
 };
 
 export default ManajemenEvent;

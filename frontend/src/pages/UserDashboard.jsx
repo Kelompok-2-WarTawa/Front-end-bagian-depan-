@@ -7,31 +7,55 @@ import TicketCard from '../components/TicketCard';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { getAllTransactions } from '../utils/transactionStore';
-import { getCurrentUser } from '../utils/authStore'; // 1. IMPORT AUTH STORE
+import { getCurrentUser } from '../utils/authStore';
+import { getEvents } from '../utils/eventStore'; // Import Event Store
 
 const UserDashboard = () => {
   const navigate = useNavigate();
   
-  // 2. STATE UNTUK USER & TIKET
+  // State User & Tiket
   const [currentUser, setCurrentUser] = useState({ name: "Guest" });
   const [latestTicket, setLatestTicket] = useState(null);
 
-  // 3. EFFECT: AMBIL DATA USER & TRANSAKSI SAAT LOAD
+  // State Event
+  const [recommendations, setRecommendations] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+
   useEffect(() => {
-    // Ambil User yang sedang login
+    // 1. Cek User Login
     const user = getCurrentUser();
     if (user) {
       setCurrentUser(user);
     } else {
-      // Jika belum login, tendang ke halaman login
       navigate('/login');
     }
 
-    // Ambil Transaksi Terakhir
+    // 2. Cek Transaksi
     const transactions = getAllTransactions();
     if (transactions.length > 0) {
         setLatestTicket(transactions[0]);
     }
+
+    // 3. AMBIL DATA EVENT DARI STORE (YANG DI-INPUT ADMIN)
+    const allEvents = getEvents();
+
+    // Format Data agar sesuai dengan props Card
+    const formattedEvents = allEvents.map(ev => ({
+        id: ev.id,
+        title: ev.nama,          // Mapping 'nama' ke 'title'
+        date: `${ev.jadwal} • ${ev.jam}`, // Gabung tanggal & jam
+        location: `${ev.lokasi}, ${ev.kota}`,
+        price: `Rp ${parseInt(ev.price).toLocaleString('id-ID')}`,
+        image: ev.image,
+        isAvailable: ev.status === 'Published'
+    }));
+
+    // REKOMENDASI: Hanya ambil 3 teratas
+    setRecommendations(formattedEvents.slice(0, 3));
+
+    // UPCOMING: Ambil SEMUA event (sesuai request)
+    setUpcomingEvents(formattedEvents);
+
   }, [navigate]);
 
   // Data Tiket Default (Fallback)
@@ -52,7 +76,6 @@ const UserDashboard = () => {
       idNumber: "-"
   };
 
-  // Persiapan Data untuk dikirim ke E-Ticket
   const ticketToShow = latestTicket ? {
       title: latestTicket.event,
       date: "Minggu, 18 April 2025",
@@ -74,19 +97,6 @@ const UserDashboard = () => {
     navigate('/eticket', { state: ticketToShow });
   };
 
-  // --- Data Dummy Rekomendasi ---
-  const recommendations = [
-    { id: 1, title: "Bell's Comedy Club", date: "Jumat, 12 Des 2025 • 20.00", location: "Balai Sarbini, Jakarta", price: "Rp 150.000", image: "https://placehold.co/400x300/1a1a1a/F59E0B?text=Comedy+Club" },
-    { id: 2, title: "Open Mic Night", date: "Minggu, 14 Des 2025", location: "The Hall, Bandung", price: "Rp 75.000", image: "https://placehold.co/400x300/1a1a1a/F59E0B?text=Open+Mic" },
-    { id: 3, title: "Comedy Kings Tour", date: "Sabtu, 14 Des 2025", location: "Grand City, Surabaya", price: "Rp 125.000", image: "https://placehold.co/400x300/1a1a1a/F59E0B?text=Comedy+Tour" }
-  ];
-
-  const upcomingEvents = [
-    { id: 101, title: "Laugh Out Loud Fest", date: "Minggu, 21 Des 2025", location: "Sabuga, Bandung", price: "Rp 125.000", image: "https://placehold.co/200x150/white/black?text=LOL+Fest", isAvailable: true },
-    { id: 102, title: "Weekend Comedy Club", date: "Sabtu, 27 Des 2025", location: "Plaza Surabaya", price: "Rp 175.000", image: "https://placehold.co/200x150/red/white?text=Weekend+Club", isAvailable: false },
-    { id: 103, title: "Standup Indo Jakpus", date: "Sabtu, 27 Des 2025", location: "Usmar Ismail Hall", price: "Rp 175.000", image: "https://placehold.co/200x150/purple/white?text=Standup+Jakpus", isAvailable: true }
-  ];
-
   return (
     <>
       <Navbar user={currentUser} />
@@ -104,15 +114,20 @@ const UserDashboard = () => {
             </p>
         </div>
 
-        {/* SECTION REKOMENDASI */}
+        {/* SECTION REKOMENDASI (Top 3) */}
         <div style={{marginBottom: '80px'}}>
             <div style={styles.headerRow}>
                 <h3 style={styles.sectionTitle}>Rekomendasi Untukmu</h3>
                 <a href="#" style={styles.link}>View All →</a>
             </div>
-            <div style={styles.grid}>
-                {recommendations.map(item => <EventCard key={item.id} {...item} />)}
-            </div>
+            
+            {recommendations.length > 0 ? (
+                <div style={styles.grid}>
+                    {recommendations.map(item => <EventCard key={item.id} {...item} />)}
+                </div>
+            ) : (
+                <p style={{color: '#9CA3AF'}}>Belum ada event rekomendasi.</p>
+            )}
         </div>
 
         {/* SECTION TIKET SAYA */}
@@ -137,13 +152,20 @@ const UserDashboard = () => {
         </div>
       </div> 
       
-      {/* SECTION UPCOMING */}
+      {/* SECTION UPCOMING (Semua Event) */}
       <div style={styles.yellowSection}>
         <div className="container">
             <h3 style={{...styles.sectionTitle, color: 'black'}}>Upcoming Events</h3>
-            <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-                {upcomingEvents.map(item => <EventRow key={item.id} {...item} />)}
-            </div>
+            
+            {upcomingEvents.length > 0 ? (
+                <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
+                    {upcomingEvents.map(item => (
+                        <EventRow key={item.id} {...item} />
+                    ))}
+                </div>
+            ) : (
+                <p style={{color: '#333'}}>Belum ada event mendatang.</p>
+            )}
         </div>
       </div>
       <Footer />
