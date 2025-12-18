@@ -1,14 +1,14 @@
-// src/pages/EventDetail.jsx
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
+import { getCurrentUser } from '../utils/authStore'; // 1. Import Auth
 
 const EventDetail = () => {
   const navigate = useNavigate();
-  const currentUser = { name: "Sutejo" };
+  
+  const currentUser = getCurrentUser() || { name: "Guest" };
 
-  // Data Dummy Event (SUDAH DIPERBARUI: 3 Kategori Tiket)
   const eventData = {
     title: "Cerita Anehku",
     performer: "Raditya Dika",
@@ -19,13 +19,11 @@ const EventDetail = () => {
     description: "Cerita Anehku adalah sebuah pertunjukan standup comedy oleh Raditya Dika dilanjutkan dengan interaksi bersama penonton.",
     image: "https://placehold.co/1200x400/111/F59E0B?text=BANNER+RADITYA+DIKA",
     
-    // --- UPDATE 3 JENIS TIKET DISINI ---
     tickets: [
       { type: "Early Bird", price: 50000, status: "Sold Out" },
       { type: "Presale", price: 75000, status: "Available" },
       { type: "Reguler", price: 100000, status: "Available" }
     ],
-    // -----------------------------------
 
     terms: [
       "Acara ini hanya untuk penonton usia 17 tahun ke atas karena mengandung kata-kata kasar dan tema sensitif.",
@@ -46,7 +44,7 @@ const EventDetail = () => {
 
   return (
     <>
-      <Navbar user={currentUser} />
+      <Navbar user={currentUser} /> {/* 3. Navbar otomatis tampil nama user */}
 
       {/* HERO BANNER */}
       <div style={styles.heroBanner}>
@@ -103,7 +101,7 @@ const EventDetail = () => {
             </div>
           </div>
 
-          {/* SECTION 2: TICKET (SUDAH DISESUAIKAN UNTUK 3 KATEGORI) */}
+          {/* SECTION 2: TICKET */}
           <div style={styles.card}>
             <div style={styles.cardHeader}>
                 <span style={{fontSize: '20px', marginRight: '10px'}}>🎫</span> 
@@ -121,14 +119,12 @@ const EventDetail = () => {
                         </div>
                         <div style={{flex: 1, paddingLeft: '20px'}}>
                             <div style={{fontWeight: 'bold', fontSize: '18px'}}>{ticket.type}</div>
-                            {/* Tampilkan pesan kecil sesuai status */}
                             <div style={{fontSize: '12px', color: '#666'}}>
                                 {ticket.status === 'Sold Out' ? 'Fully Booked' : 'Selling Fast'}
                             </div>
                         </div>
                         <div style={{
                             ...styles.badge, 
-                            // Ubah warna merah jika Sold Out, Hijau jika Available
                             backgroundColor: ticket.status === 'Sold Out' ? '#EF4444' : '#10B981'
                         }}>
                             {ticket.status}
@@ -136,7 +132,6 @@ const EventDetail = () => {
                     </div>
                 ))}
                 
-                {/* Tombol Beli Langsung di Sini */}
                 <button 
                     onClick={() => navigate('/payment/select')} 
                     style={styles.buyButton}
@@ -154,30 +149,26 @@ const EventDetail = () => {
   );
 };
 
-// --- STYLING ---
+// --- STYLING (Tetap sama) ---
 const styles = {
   heroBanner: {
     width: '100%', height: '350px', position: 'relative', backgroundColor: '#000'
   },
   heroOverlay: {
     position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-    background: 'linear-gradient(to bottom, transparent, #F59E0B)' // Efek memudar ke kuning
+    background: 'linear-gradient(to bottom, transparent, #F59E0B)' 
   },
-  
-  // Container Kuning Besar
   mainContainer: {
     backgroundColor: '#F59E0B', 
     minHeight: '100vh', 
     padding: '0 20px 60px 20px',
-    marginTop: '-50px', // Supaya container naik menutupi sedikit banner
+    marginTop: '-50px', 
     position: 'relative',
     zIndex: 10
   },
   contentWrapper: {
     maxWidth: '800px', margin: '0 auto'
   },
-
-  // Style Kartu Umum
   card: {
     borderRadius: '12px', overflow: 'hidden', marginBottom: '30px',
     boxShadow: '0 4px 15px rgba(0,0,0,0.1)'
@@ -189,15 +180,11 @@ const styles = {
   cardBody: {
     backgroundColor: '#FFFBEB', padding: '25px', color: '#333'
   },
-
-  // Grid Info (Desc)
   infoGrid: {
     display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px',
     color: '#555', fontSize: '14px'
   },
   infoItem: { fontWeight: '500' },
-
-  // Ticket Section
   ticketDropdownHeader: {
     borderBottom: '1px solid #ddd', paddingBottom: '15px', marginBottom: '15px',
     fontWeight: 'bold', fontSize: '16px'

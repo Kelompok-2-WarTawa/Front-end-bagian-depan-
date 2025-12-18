@@ -4,19 +4,24 @@ import Navbar from '../components/Navbar';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { saveTransaction } from '../utils/transactionStore'; 
 import { getTicketConfig } from '../utils/ticketStore';
+import { getCurrentUser } from '../utils/authStore'; // 1. Import Auth
 
 const PaymentBayar = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const currentUser = { name: "Sutejo", email: "sutejo@example.com" };
+  
+  // 2. Ambil data user yang sedang login (Hapus Sutejo)
+  // Jika tidak ada user login (guest), berikan default kosong atau guest
+  const currentUser = getCurrentUser() || { name: "Guest", email: "guest@example.com" };
 
-  // 1. AMBIL DATA
+  // 3. AMBIL DATA DARI HALAMAN SEBELUMNYA
   const { 
     qtyEarly = 0, 
     qtyPresale = 0, 
     qtyReguler = 0, 
     totalHarga = 0, 
     paymentMethod = 'BCA Virtual Account',
+    // Gunakan data dari form sebelumnya, atau fallback ke data user login
     fullName = currentUser.name,
     email = currentUser.email,
     phoneNumber = '-',
@@ -34,7 +39,7 @@ const PaymentBayar = () => {
     setConfig(data);
   }, []);
 
-  // 2. GENERATE INVOICE
+  // 4. GENERATE INVOICE
   const [transactionData] = useState(() => {
     return {
       nomorVA: "880" + Math.floor(1000000000 + Math.random() * 9000000000), 
@@ -44,7 +49,7 @@ const PaymentBayar = () => {
   
   const { nomorVA, invoiceID } = transactionData;
 
-  // 3. HITUNG BIAYA TAMBAHAN
+  // 5. HITUNG BIAYA TAMBAHAN
   const adminFee = 20000;
   const platformFee = 29000;
   const tax = totalHarga * 0.11;
@@ -80,8 +85,8 @@ const PaymentBayar = () => {
 
   const handleCompletePayment = () => {
     const newTrx = {
-        user: fullName,
-        email: email,
+        user: fullName,        // Nama User dari form/login
+        email: email,          // Email User dari form/login
         phoneNumber: phoneNumber,
         idNumber: idNumber,
         event: 'Cerita Anehku', 
@@ -194,7 +199,7 @@ const PaymentBayar = () => {
 
                 <hr style={{border: 'none', borderTop: '1px solid #eee', margin: '15px 0'}}/>
 
-                {/* --- FIX: Gunakan Harga dari Config, bukan Hardcode --- */}
+                {/* --- FIX: Gunakan Harga dari Config --- */}
                 {qtyEarly > 0 && (
                     <div style={styles.row}>
                         <span>Early Bird ({qtyEarly})</span>
