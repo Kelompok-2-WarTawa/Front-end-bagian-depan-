@@ -3,25 +3,22 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logoImg from '../assets/logo.png'; 
 import '../App.css'; 
-import { logoutUser } from '../utils/authStore'; // Import Logout dari Store
+import { logoutUser } from '../utils/authStore'; 
 
-const Navbar = ({ user }) => {
+const Navbar = ({ user, onSearch }) => { 
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
   const toggleDropdown = () => setIsOpen(!isOpen);
 
-  // Handle Logout yang sudah diupdate
   const handleLogout = () => {
-    logoutUser(); // Hapus sesi dari localStorage
+    logoutUser(); 
     setIsOpen(false);
-    navigate('/login'); // Arahkan ke login
-    // Reload halaman opsional agar state di App.jsx ter-reset
+    navigate('/login'); 
     window.location.reload(); 
   };
 
-  // Navigasi ke Tab Pengaturan
   const handleGoToSettings = () => {
     setIsOpen(false);
     navigate('/profile', { state: { defaultTab: 'settings' } });
@@ -32,7 +29,6 @@ const Navbar = ({ user }) => {
     navigate('/profile', { state: { defaultTab: 'profile' } });
   };
 
-  // Tutup dropdown jika klik di luar
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -53,9 +49,15 @@ const Navbar = ({ user }) => {
           <span><span style={{color: '#F59E0B'}}>War</span>Tawa</span>
         </div>
 
-        {/* SEARCH BAR */}
+        {/* SEARCH BAR (INTEGRATED) */}
         <div style={styles.searchBox}>
-          <input type="text" placeholder="Search event..." style={styles.input} />
+          <input 
+            type="text" 
+            placeholder="Cari event, artis, atau kota..." 
+            style={styles.input} 
+            // INI KUNCINYA: Kirim teks ke parent (UserDashboard)
+            onChange={(e) => onSearch && onSearch(e.target.value)}
+          />
         </div>
 
         {/* MENU KANAN */}
@@ -64,10 +66,10 @@ const Navbar = ({ user }) => {
             <div ref={dropdownRef} style={{ position: 'relative' }}>
                 <div style={styles.profileArea} onClick={toggleDropdown}>
                     <div style={{textAlign: 'right', marginRight: '12px'}}>
-                        <div style={{fontSize: '14px', fontWeight: 'bold'}}>Halo, {user.name}</div>
+                        <div style={{fontSize: '14px', fontWeight: 'bold'}}>Halo, {user.name || user.fullName}</div>
                         <div style={{fontSize: '11px', color: '#9CA3AF'}}>Attendee</div>
                     </div>
-                    <div style={styles.avatar}>{user.name.charAt(0)}</div>
+                    <div style={styles.avatar}>{(user.name || user.fullName || "G").charAt(0).toUpperCase()}</div>
                 </div>
 
                 {isOpen && (
@@ -75,11 +77,9 @@ const Navbar = ({ user }) => {
                     <div className="dropdown-item" onClick={handleGoToProfile}>
                       📄 Informasi Dasar
                     </div>
-                    
                     <div className="dropdown-item" onClick={handleGoToSettings}>
                       ⚙️ Pengaturan
                     </div>
-                    
                     <div style={{height: '1px', background: '#374151', margin: '4px 0'}}></div>
                     <div className="dropdown-item" onClick={handleLogout} style={{color: '#EF4444'}}>
                       🚪 Keluar
@@ -109,7 +109,7 @@ const styles = {
   logo: { display: 'flex', alignItems: 'center', fontSize: '24px', fontWeight: 'bold', color: 'white', gap: '10px', cursor: 'pointer' },
   logoImage: { height: '25px', width: 'auto' },
   searchBox: { flex: 1, display: 'flex', justifyContent: 'center' },
-  input: { width: '100%', maxWidth: '400px', padding: '10px 15px', borderRadius: '20px', border: 'none', outline: 'none' },
+  input: { width: '100%', maxWidth: '400px', padding: '10px 20px', borderRadius: '20px', border: 'none', outline: 'none', fontSize: '14px' },
   menuRight: { display: 'flex', alignItems: 'center' },
   profileArea: { display: 'flex', alignItems: 'center', color: 'white', cursor: 'pointer', userSelect: 'none' },
   avatar: { width: '40px', height: '40px', backgroundColor: '#F59E0B', color: 'black', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold', fontSize: '18px' }

@@ -8,7 +8,7 @@ import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { getAllTransactions } from '../utils/transactionStore';
 import { getCurrentUser } from '../utils/authStore';
-import { getEvents } from '../utils/eventStore'; // Import Event Store
+import { getEvents } from '../utils/eventStore';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -17,9 +17,11 @@ const UserDashboard = () => {
   const [currentUser, setCurrentUser] = useState({ name: "Guest" });
   const [latestTicket, setLatestTicket] = useState(null);
 
-  // State Event
+  // State Event & Search
   const [recommendations, setRecommendations] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [filteredEvents, setFilteredEvents] = useState([]); 
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     // 1. Cek User Login
@@ -28,93 +30,125 @@ const UserDashboard = () => {
       setCurrentUser(user);
     } else {
       navigate('/login');
+      return;
     }
 
-    // 2. Cek Transaksi
+    // 2. Cek Transaksi (Ambil milik user & status Lunas)
     const transactions = getAllTransactions();
-    if (transactions.length > 0) {
-        setLatestTicket(transactions[0]);
+    if (user) {
+        const myTrx = transactions.filter(t => t.email === user.email && t.status === 'Lunas');
+        if (myTrx.length > 0) {
+            setLatestTicket(myTrx[myTrx.length - 1]); // Ambil transaksi terakhir
+        }
     }
 
-    // 3. AMBIL DATA EVENT DARI STORE 
+    // 3. AMBIL DATA EVENT
     const allEvents = getEvents();
 
-    // Format Data agar sesuai dengan props Card
     const formattedEvents = allEvents.map(ev => ({
         id: ev.id,
-        title: ev.nama,          
+        title: ev.nama,
+        talent: ev.talent || "", // Field talent untuk pencarian
         date: `${ev.jadwal} • ${ev.jam}`,
         location: `${ev.lokasi}, ${ev.kota}`,
         price: `Rp ${parseInt(ev.price).toLocaleString('id-ID')}`,
         image: ev.image,
-        isAvailable: ev.status === 'Published'
+        isAvailable: ev.status === 'Published',
+        originalLocation: ev.kota || "" 
     }));
 
-    // REKOMENDASI: Hanya ambil 3 teratas
     setRecommendations(formattedEvents.slice(0, 3));
-
-    // UPCOMING: Ambil SEMUA event
     setUpcomingEvents(formattedEvents);
+    setFilteredEvents(formattedEvents); // Default: Tampilkan semua saat awal load
 
   }, [navigate]);
 
-  // Data Tiket Default
-  const defaultTicket = {
-      title: "Comedy Night with Rising Stars",
-      date: "Sabtu, 28 Des 2025",
-      location: "Teater Jakarta, Jakarta",
-      image: "https://placehold.co/150x150/purple/white?text=Ticket",
-      time: "19:00 WIB",
-      seat: "Reguler - A1",
-      qrData: "DUMMY-QR",
-      invoiceID: "INV-DUMMY",
-      amount: "Rp 0",
-      method: "-",
-      user: currentUser.name,
-      email: "-",
-      phoneNumber: "-",
-      idNumber: "-"
-  };
+  // --- LOGIKA FILTER PENCARIAN ---
+  useEffect(() => {
+    // Jika tidak ada data event, skip
+    if (!upcomingEvents || upcomingEvents.length === 0) return;
 
-  const ticketToShow = latestTicket ? {
+    if (searchTerm.trim() === "") {
+        setFilteredEvents(upcomingEvents);
+    } else {
+        const lowerTerm = searchTerm.toLowerCase().trim();
+        
+        const results = upcomingEvents.filter(item => {
+            const titleMatch = item.title && item.title.toLowerCase().includes(lowerTerm);
+            const locMatch = item.location && item.location.toLowerCase().includes(lowerTerm);
+            const talentMatch = item.talent && item.talent.toLowerCase().includes(lowerTerm);
+            
+            return titleMatch || locMatch || talentMatch;
+        });
+        setFilteredEvents(results);
+    }
+  }, [searchTerm, upcomingEvents]);
+
+
+  // --- PERSIAPAN DATA KARTU TIKET ---
+  const ticketDisplay = latestTicket ? {
       title: latestTicket.event,
-      date: "Minggu, 18 April 2025",
-      location: "Sabuga ITB, Bandung",
-      image: "https://placehold.co/150x150/111/F59E0B?text=EVENT",
-      time: "19:30 WIB",
-      seat: "Reguler",
-      qrData: latestTicket.invoiceID,
-      invoiceID: latestTicket.invoiceID,
-      amount: latestTicket.amount,
-      method: latestTicket.method,
-      user: latestTicket.user,
-      email: latestTicket.email,
-      phoneNumber: latestTicket.phoneNumber,
-      idNumber: latestTicket.idNumber
-  } : defaultTicket;
+      date: latestTicket.date,
+      location: latestTicket.location,
+      image: latestTicket.image || "https://placehold.co/150x150/111/F59E0B?text=EVENT",
+      time: "Open Gate",
+      seat: latestTicket.selectedSeats ? latestTicket.selectedSeats.join(', ') : "Reguler",
+      invoiceID: latestTicket.invoiceID
+  } : null;
 
+  // --- FUNGSI LIHAT E-TICKET ---
   const handleViewTicket = () => {
-    navigate('/eticket', { state: ticketToShow });
+    if (!latestTicket) return;
+
+    // Bungkus ulang data agar E-Ticket bisa baca
+    const payload = {
+        invoiceID: latestTicket.invoiceID,
+        paymentMethod: latestTicket.paymentMethod || latestTicket.method,
+        eventData: {
+            nama: latestTicket.event,
+            jadwal: latestTicket.date,
+            lokasi: latestTicket.location,
+            image: latestTicket.image,
+            jam: 'Open Gate'
+        },
+        userData: {
+            fullName: latestTicket.user,
+            email: latestTicket.email,
+            phoneNumber: latestTicket.phoneNumber
+        },
+        ticketData: {
+            selectedSeats: latestTicket.selectedSeats || [],
+            qty: {
+                early: latestTicket.qtyEarly || 0,
+                presale: latestTicket.qtyPresale || 0,
+                reguler: latestTicket.qtyReguler || 0
+            }
+        }
+    };
+    
+    navigate('/eticket', { state: payload });
   };
 
   return (
     <>
-      <Navbar user={currentUser} />
+      {/* Passing fungsi search ke Navbar */}
+      <Navbar user={currentUser} onSearch={(text) => setSearchTerm(text)} />
+      
       <div style={styles.heroBanner}></div>
 
       <div className="container" style={{paddingTop: '40px', paddingBottom: '60px'}}>
         
-        {/* HEADER: NAMA USER DINAMIS */}
+        {/* HEADER */}
         <div style={{textAlign: 'center', marginBottom: '60px'}}>
             <h1 style={{fontSize: '36px', marginBottom: '10px', color: 'white'}}>
-                Halo, <span style={{color: '#F59E0B'}}>{currentUser.name}!</span>
+                Halo, <span style={{color: '#F59E0B'}}>{currentUser.name || currentUser.fullName}!</span>
             </h1>
             <p style={{fontSize: '20px', color: '#9CA3AF', fontWeight: '300'}}>
                 Siap tertawa lepas hari ini? Cek tiketmu di bawah.
             </p>
         </div>
 
-        {/* SECTION REKOMENDASI (Top 3) */}
+        {/* REKOMENDASI */}
         <div style={{marginBottom: '80px'}}>
             <div style={styles.headerRow}>
                 <h3 style={styles.sectionTitle}>Rekomendasi Untukmu</h3>
@@ -130,41 +164,49 @@ const UserDashboard = () => {
             )}
         </div>
 
-        {/* SECTION TIKET SAYA */}
-        <div style={{marginBottom: '40px'}}>
-             <h3 style={styles.sectionTitle}>Tiket Saya</h3>
-             {latestTicket ? (
-                <>
-                    <p style={{color: '#9CA3AF', marginTop: '-10px', marginBottom: '30px'}}>Kamu Punya Tiket Aktif</p>
-                    <TicketCard 
-                        title={ticketToShow.title} 
-                        date={ticketToShow.date} 
-                        location={ticketToShow.location}
-                        image={ticketToShow.image} 
-                        onAction={handleViewTicket} 
-                    />
-                </>
-             ) : (
-                <div style={{padding: '40px', background: '#1F2937', borderRadius: '12px', textAlign: 'center', color: '#9CA3AF'}}>
-                    Belum ada tiket yang dibeli.
-                </div>
-             )}
-        </div>
+        {/* TIKET SAYA */}
+        {ticketDisplay ? (
+            <div style={{marginBottom: '40px'}}>
+                <h3 style={styles.sectionTitle}>Tiket Aktif Saya</h3>
+                <p style={{color: '#9CA3AF', marginTop: '-10px', marginBottom: '30px'}}>
+                    Jangan lupa tunjukkan QR Code saat masuk.
+                </p>
+                <TicketCard 
+                    title={ticketDisplay.title} 
+                    date={ticketDisplay.date} 
+                    location={ticketDisplay.location}
+                    image={ticketDisplay.image} 
+                    seat={ticketDisplay.seat}
+                    invoiceID={ticketDisplay.invoiceID}
+                    onAction={handleViewTicket} 
+                />
+            </div>
+        ) : (
+             <div style={{marginBottom: '40px', padding: '40px', background: '#1F2937', borderRadius: '12px', textAlign: 'center'}}>
+                <h3 style={{color:'white'}}>Belum ada tiket aktif</h3>
+                <p style={{color:'#9CA3AF'}}>Yuk beli tiket stand up comedy sekarang!</p>
+             </div>
+        )}
       </div> 
       
-      {/* SECTION UPCOMING (Semua Event) */}
+      {/* SECTION UPCOMING & HASIL SEARCH */}
       <div style={styles.yellowSection}>
         <div className="container">
-            <h3 style={{...styles.sectionTitle, color: 'black'}}>Upcoming Events</h3>
+            <h3 style={{...styles.sectionTitle, color: 'black'}}>
+                {searchTerm ? `Hasil Pencarian: "${searchTerm}"` : "Upcoming Events"}
+            </h3>
             
-            {upcomingEvents.length > 0 ? (
+            {/* Tampilkan FILTERED EVENTS, bukan upcomingEvents */}
+            {filteredEvents.length > 0 ? (
                 <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
-                    {upcomingEvents.map(item => (
+                    {filteredEvents.map(item => (
                         <EventRow key={item.id} {...item} />
                     ))}
                 </div>
             ) : (
-                <p style={{color: '#333'}}>Belum ada event mendatang.</p>
+                <div style={{textAlign: 'center', padding: '20px', color: '#333'}}>
+                    <p>Tidak ada event yang cocok dengan pencarianmu.</p>
+                </div>
             )}
         </div>
       </div>
