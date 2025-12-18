@@ -9,11 +9,12 @@ const PaymentCheckout = () => {
   const location = useLocation();
   const currentUser = { name: "Sutejo" };
 
-  // --- 1. AMBIL SEMUA DATA DARI TAHAP SEBELUMNYA ---
+  // --- 1. AMBIL SEMUA DATA DARI TAHAP SEBELUMNYA (UPDATE 3 KATEGORI) ---
   const allData = location.state || {};
   const { 
+    qtyEarly = 0,    // Baru
+    qtyPresale = 0,  // Baru
     qtyReguler = 0, 
-    qtyVVIP = 0, 
     totalHarga = 0, 
     fullName = '-', 
     idNumber = '-', 
@@ -110,13 +111,18 @@ const PaymentCheckout = () => {
             </p>
           </div>
 
-          {/* 4. PAYMENT DETAILS (TOTAL) */}
+          {/* 4. PAYMENT DETAILS (TOTAL - SUDAH DIPERBAIKI) */}
           <div style={styles.summaryBox}>
              <h3 style={{margin: '0 0 15px 0'}}>Payment details</h3>
              
-             {qtyVVIP > 0 && (
-                <div style={styles.summaryRow}><span>VVIP</span><span>{qtyVVIP} x</span></div>
+             {qtyEarly > 0 && (
+                <div style={styles.summaryRow}><span>Early Bird</span><span>{qtyEarly} x</span></div>
              )}
+
+             {qtyPresale > 0 && (
+                <div style={styles.summaryRow}><span>Presale</span><span>{qtyPresale} x</span></div>
+             )}
+
              {qtyReguler > 0 && (
                 <div style={styles.summaryRow}><span>Reguler</span><span>{qtyReguler} x</span></div>
              )}
@@ -140,9 +146,8 @@ const PaymentCheckout = () => {
   );
 };
 
-// --- STYLING ---
+// --- STYLING (Tetap sama) ---
 const styles = {
-  // Step Bar
   stepBar: {
     display: 'flex', justifyContent: 'center', alignItems: 'center',
     backgroundColor: '#F59E0B', padding: '15px', borderRadius: '50px',
@@ -154,42 +159,35 @@ const styles = {
   stepCircleActive: { width: '28px', height: '28px', backgroundColor: 'black', color: '#F59E0B', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold' },
   stepCircleDone: { width: '28px', height: '28px', backgroundColor: 'black', color: '#F59E0B', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', fontWeight: 'bold' },
 
-  // Main Container
   mainCard: {
     backgroundColor: '#F59E0B', borderRadius: '16px', padding: '30px',
     maxWidth: '800px', margin: '0 auto', boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
   },
   pageTitle: { textAlign: 'center', color: 'white', fontSize: '28px', marginBottom: '20px', marginTop: 0 },
 
-  // Kartu Putih (Reusable)
   whiteCard: {
     backgroundColor: '#FFFBEB', borderRadius: '12px', padding: '25px', marginBottom: '20px', color: '#333'
   },
   sectionHeader: { margin: '0 0 15px 0', fontSize: '18px', fontWeight: 'bold', borderBottom: '1px solid #eee', paddingBottom: '10px' },
 
-  // Event Info
   eventLayout: { display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap' },
   eventImg: { width: '150px', height: '100px', borderRadius: '8px', objectFit: 'cover' },
   eventText: { margin: '5px 0', color: '#555', fontSize: '14px' },
 
-  // Personal Info Rows
   infoRow: { display: 'flex', marginBottom: '8px', fontSize: '15px' },
   label: { width: '140px', fontWeight: '600', color: '#444' },
   value: { flex: 1, color: '#000' },
 
-  // Payment Icon
   paymentIcon: { 
     width: '40px', height: '40px', backgroundColor: '#E0F2FE', 
     borderRadius: '8px', display: 'flex', justifyContent: 'center', alignItems: 'center', fontSize: '20px'
   },
 
-  // Bottom Summary Box
   summaryBox: {
     backgroundColor: '#FFFBEB', borderRadius: '12px', padding: '25px', marginTop: '10px', color: '#333'
   },
   summaryRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '8px' },
   
-  // Pay Button
   payButton: {
     width: '100%', padding: '15px', backgroundColor: '#1F2937', color: 'white',
     border: 'none', borderRadius: '8px', fontSize: '20px', fontWeight: 'bold',

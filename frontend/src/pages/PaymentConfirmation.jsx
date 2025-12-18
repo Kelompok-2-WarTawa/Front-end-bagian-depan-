@@ -9,9 +9,14 @@ const PaymentConfirmation = () => {
   const location = useLocation();
   const currentUser = { name: "Sutejo" };
 
-  // 1. AMBIL DATA DARI STEP SEBELUMNYA
+  // 1. AMBIL DATA DARI STEP SEBELUMNYA (UPDATE 3 KATEGORI)
   const previousData = location.state || {};
-  const { qtyReguler = 0, qtyVVIP = 0, totalHarga = 0 } = previousData;
+  const { 
+    qtyEarly = 0,    // Baru
+    qtyPresale = 0,  // Baru
+    qtyReguler = 0, 
+    totalHarga = 0 
+  } = previousData;
 
   // 2. STATE UNTUK DROPDOWN & PILIHAN
   const [activeDropdown, setActiveDropdown] = useState(''); 
@@ -75,7 +80,7 @@ const PaymentConfirmation = () => {
             <div style={styles.dropdownItem}>
               <div style={styles.dropdownHeader} onClick={() => toggleDropdown('va')}>
                 <span style={{fontWeight: 'bold', display:'flex', alignItems:'center', gap:'10px'}}>
-                   Virtual Account
+                   🏦 Virtual Account
                 </span>
                 <span>{activeDropdown === 'va' ? '▲' : '▼'}</span>
               </div>
@@ -99,7 +104,7 @@ const PaymentConfirmation = () => {
             <div style={styles.dropdownItem}>
               <div style={styles.dropdownHeader} onClick={() => toggleDropdown('wallet')}>
                 <span style={{fontWeight: 'bold', display:'flex', alignItems:'center', gap:'10px'}}>
-                   E-Wallet
+                   👛 E-Wallet
                 </span>
                 <span>{activeDropdown === 'wallet' ? '▲' : '▼'}</span>
               </div>
@@ -132,17 +137,33 @@ const PaymentConfirmation = () => {
           </div>
         </div>
 
-        {/* --- 3. RINCIAN TICKET (PERSISTENT) --- */}
+        {/* --- 3. RINCIAN TICKET (SUDAH DIPERBAIKI UNTUK 3 KATEGORI) --- */}
         <div style={styles.summaryBoxOuter}>
              <h3 style={{marginTop: 0, marginBottom: '15px', borderBottom: '1px solid #ccc', paddingBottom: '10px'}}>
                 Rincian Ticket
              </h3>
-             {qtyVVIP > 0 && (
-               <div style={styles.summaryRow}><span>VVIP</span><span>{qtyVVIP} x</span></div>
+             
+             {qtyEarly > 0 && (
+               <div style={styles.summaryRow}>
+                  <span>Early Bird</span>
+                  <span>{qtyEarly} x</span>
+               </div>
              )}
+
+             {qtyPresale > 0 && (
+               <div style={styles.summaryRow}>
+                  <span>Presale</span>
+                  <span>{qtyPresale} x</span>
+               </div>
+             )}
+             
              {qtyReguler > 0 && (
-               <div style={styles.summaryRow}><span>Reguler</span><span>{qtyReguler} x</span></div>
+               <div style={styles.summaryRow}>
+                  <span>Reguler</span>
+                  <span>{qtyReguler} x</span>
+               </div>
              )}
+
              <hr style={{border: 'none', borderTop: '1px solid #ccc', margin: '15px 0'}}/>
              <div style={styles.summaryRow}>
                 <span>TOTAL</span>
@@ -163,7 +184,7 @@ const PaymentConfirmation = () => {
   );
 };
 
-// --- STYLING ---
+// --- STYLING (Tetap sama) ---
 const styles = {
   // Step Bar
   stepBar: {

@@ -8,7 +8,7 @@ const EventDetail = () => {
   const navigate = useNavigate();
   const currentUser = { name: "Sutejo" };
 
-  // Data Dummy Event (Sesuai Gambar)
+  // Data Dummy Event (SUDAH DIPERBARUI: 3 Kategori Tiket)
   const eventData = {
     title: "Cerita Anehku",
     performer: "Raditya Dika",
@@ -17,11 +17,16 @@ const EventDetail = () => {
     location: "Sabuga ITB, Bandung",
     seats: "150 Kursi Tersedia",
     description: "Cerita Anehku adalah sebuah pertunjukan standup comedy oleh Raditya Dika dilanjutkan dengan interaksi bersama penonton.",
-    image: "https://placehold.co/1200x400/111/F59E0B?text=BANNER+RADITYA+DIKA", // Ganti dengan URL gambar asli jika ada
+    image: "https://placehold.co/1200x400/111/F59E0B?text=BANNER+RADITYA+DIKA",
+    
+    // --- UPDATE 3 JENIS TIKET DISINI ---
     tickets: [
-      { type: "Reguler", price: 100000, status: "Available" },
-      { type: "VVIP", price: 500000, status: "Available" }
+      { type: "Early Bird", price: 50000, status: "Sold Out" },
+      { type: "Presale", price: 75000, status: "Available" },
+      { type: "Reguler", price: 100000, status: "Available" }
     ],
+    // -----------------------------------
+
     terms: [
       "Acara ini hanya untuk penonton usia 17 tahun ke atas karena mengandung kata-kata kasar dan tema sensitif.",
       "Nama harus sesuai dengan kartu identitas yang sah (KTP/SIM/Paspor) pada saat pembelian tiket.",
@@ -81,7 +86,50 @@ const EventDetail = () => {
             </div>
           </div>
 
-          {/* SECTION 2: TERMS AND CONDITION */}
+          {/* SECTION 2: TICKET (SUDAH DISESUAIKAN UNTUK 3 KATEGORI) */}
+          <div style={styles.card}>
+            <div style={styles.cardHeader}>
+                <span style={{fontSize: '20px', marginRight: '10px'}}>🎫</span> 
+                Ticket
+            </div>
+            <div style={styles.cardBody}>
+                <div style={styles.ticketDropdownHeader}>
+                    3 Ticket Categories Available
+                </div>
+
+                {eventData.tickets.map((ticket, index) => (
+                    <div key={index} style={styles.ticketRow}>
+                        <div style={{fontWeight: 'bold', fontSize: '18px', width: '120px'}}>
+                            {formatRupiah(ticket.price)}
+                        </div>
+                        <div style={{flex: 1, paddingLeft: '20px'}}>
+                            <div style={{fontWeight: 'bold', fontSize: '18px'}}>{ticket.type}</div>
+                            {/* Tampilkan pesan kecil sesuai status */}
+                            <div style={{fontSize: '12px', color: '#666'}}>
+                                {ticket.status === 'Sold Out' ? 'Fully Booked' : 'Selling Fast'}
+                            </div>
+                        </div>
+                        <div style={{
+                            ...styles.badge, 
+                            // Ubah warna merah jika Sold Out, Hijau jika Available
+                            backgroundColor: ticket.status === 'Sold Out' ? '#EF4444' : '#10B981'
+                        }}>
+                            {ticket.status}
+                        </div>
+                    </div>
+                ))}
+                
+                {/* Tombol Beli Langsung di Sini */}
+                <button 
+                    onClick={() => navigate('/payment/select')} 
+                    style={styles.buyButton}
+                >
+                    Buy Ticket Now
+                </button>
+            </div>
+          </div>
+
+          {/* SECTION 3: TERMS AND CONDITION */}
           <div style={styles.card}>
             <div style={styles.cardHeader}>
                 <span style={{fontSize: '20px', marginRight: '10px'}}>📄</span> 
@@ -95,40 +143,6 @@ const EventDetail = () => {
                         </li>
                     ))}
                 </ol>
-            </div>
-          </div>
-
-          {/* SECTION 3: TICKET */}
-          <div style={styles.card}>
-            <div style={styles.cardHeader}>
-                <span style={{fontSize: '20px', marginRight: '10px'}}>🎫</span> 
-                Ticket
-            </div>
-            <div style={styles.cardBody}>
-                <div style={styles.ticketDropdownHeader}>
-                    2 Ticket Category - Price Starting From Rp 100.000
-                </div>
-
-                {eventData.tickets.map((ticket, index) => (
-                    <div key={index} style={styles.ticketRow}>
-                        <div style={{fontWeight: 'bold', fontSize: '18px'}}>
-                            {formatRupiah(ticket.price)}
-                        </div>
-                        <div style={{flex: 1, paddingLeft: '20px'}}>
-                            <div style={{fontWeight: 'bold', fontSize: '18px'}}>{ticket.type}</div>
-                            <div style={{fontSize: '12px', color: '#666'}}>Sale ends soon</div>
-                        </div>
-                        <div style={styles.badge}>{ticket.status}</div>
-                    </div>
-                ))}
-                
-                {/* Tombol Beli Langsung di Sini */}
-                <button 
-                    onClick={() => navigate('/payment/select')} 
-                    style={styles.buyButton}
-                >
-                    Buy Ticket Now
-                </button>
             </div>
           </div>
 
@@ -193,7 +207,7 @@ const styles = {
     padding: '15px 0', borderBottom: '1px dashed #ccc'
   },
   badge: {
-    backgroundColor: '#10B981', color: 'white', padding: '5px 12px',
+    color: 'white', padding: '5px 12px',
     borderRadius: '20px', fontSize: '12px', fontWeight: 'bold'
   },
   buyButton: {

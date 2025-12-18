@@ -8,33 +8,34 @@ const PaymentBayar = () => {
   const navigate = useNavigate();
   const currentUser = { name: "Sutejo" };
 
+  // 1. AMBIL DATA DARI HALAMAN CHECKOUT (UPDATE 3 KATEGORI)
   const { 
+    qtyEarly = 0,     // Baru
+    qtyPresale = 0,   // Baru
     qtyReguler = 0, 
-    qtyVVIP = 0, 
     totalHarga = 0, 
     paymentMethod = 'BCA Virtual Account' 
   } = location.state || {};
 
   const isVirtualAccount = paymentMethod.toLowerCase().includes('virtual account');
 
-  // --- UPDATE PENTING DI SINI ---
-  // Gunakan useState agar nilai Invoice & VA HANYA dibuat 1x saat pertama load.
-  // Tidak akan berubah walaupun detiknya jalan.
+  // Generate Invoice ID Sekali Saja
   const [transactionData] = useState(() => {
     return {
-      nomorVA: "880" + Math.floor(1000000000 + Math.random() * 9000000000), // Random VA
-      invoiceID: "INV-" + Math.floor(100000 + Math.random() * 900000)      // Random Invoice
+      nomorVA: "880" + Math.floor(1000000000 + Math.random() * 9000000000), 
+      invoiceID: "INV-" + Math.floor(100000 + Math.random() * 900000)      
     };
   });
   
   const { nomorVA, invoiceID } = transactionData;
-  // -------------------------------
 
+  // Biaya Tambahan
   const adminFee = 20000;
   const platformFee = 29000;
   const tax = totalHarga * 0.11;
   const grandTotal = totalHarga + adminFee + platformFee + tax;
 
+  // Timer Mundur
   const [timeLeft, setTimeLeft] = useState(3600);
 
   useEffect(() => {
@@ -138,6 +139,7 @@ const PaymentBayar = () => {
                 )}
             </div>
 
+            {/* INVOICE DETAIL (SUDAH DIPERBAIKI) */}
             <div style={styles.invoiceCard}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '15px'}}>
                     <span style={{fontWeight: 'bold', fontSize: '18px'}}>{paymentMethod}</span>
@@ -146,7 +148,6 @@ const PaymentBayar = () => {
 
                 <div style={{marginBottom: '20px'}}>
                     <p style={{fontSize: '12px', color: '#666', margin: 0}}>Kode Invoice</p>
-                    {/* INI KODE INVOICE YANG SUDAH AMAN (TIDAK BERUBAH) */}
                     <p style={{fontWeight: 'bold', fontSize: '16px', margin: '5px 0'}}>{invoiceID}</p>
                     
                     <p style={{fontSize: '12px', color: '#666', margin: '15px 0 0 0'}}>Total Pembayaran</p>
@@ -155,8 +156,17 @@ const PaymentBayar = () => {
 
                 <hr style={{border: 'none', borderTop: '1px solid #eee', margin: '15px 0'}}/>
 
-                <div style={styles.row}><span>VVIP ({qtyVVIP})</span><span>{formatRupiah(qtyVVIP * 500000)}</span></div>
-                <div style={styles.row}><span>Reguler ({qtyReguler})</span><span>{formatRupiah(qtyReguler * 100000)}</span></div>
+                {/* RINCIAN ITEM (3 KATEGORI) */}
+                {qtyEarly > 0 && (
+                    <div style={styles.row}><span>Early Bird ({qtyEarly})</span><span>{formatRupiah(qtyEarly * 50000)}</span></div>
+                )}
+                {qtyPresale > 0 && (
+                    <div style={styles.row}><span>Presale ({qtyPresale})</span><span>{formatRupiah(qtyPresale * 75000)}</span></div>
+                )}
+                {qtyReguler > 0 && (
+                    <div style={styles.row}><span>Reguler ({qtyReguler})</span><span>{formatRupiah(qtyReguler * 100000)}</span></div>
+                )}
+                
                 <div style={styles.row}><span>Local Tax (11%)</span><span>{formatRupiah(tax)}</span></div>
                 <div style={styles.row}><span>Biaya Admin</span><span>{formatRupiah(adminFee)}</span></div>
                 <div style={styles.row}><span>Biaya Platform</span><span>{formatRupiah(platformFee)}</span></div>
@@ -175,7 +185,7 @@ const PaymentBayar = () => {
   );
 };
 
-// --- STYLES ---
+// --- STYLES (Tetap sama) ---
 const styles = {
   mainCard: { backgroundColor: '#F59E0B', maxWidth: '600px', margin: '0 auto', minHeight: '100vh', paddingBottom: '40px', boxShadow: '0 0 20px rgba(0,0,0,0.5)', position: 'relative' },
   bannerContainer: { width: '100%', height: '180px', overflow: 'hidden', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' },
