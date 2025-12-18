@@ -13,6 +13,7 @@ import PaymentInfo from './pages/PaymentInfo';
 import PaymentConfirmation from './pages/PaymentConfirmation';
 import PaymentCheckout from './pages/PaymentCheckout';
 import PaymentBayar from './pages/PaymentBayar';
+import ETicket from './pages/ETicket';
 
 // --- IMPORT ADMIN ---
 import AdminLayout from './pages/admin/AdminLayout';
@@ -43,6 +44,9 @@ function App() {
 
         {/* Detail Event */}  
         <Route path="/event/:id" element={<EventDetail />} />
+
+        {/* Detail ETicket */}
+        <Route path="/eticket" element={<ETicket />} />
 
         {/* Route untuk Payment */}
         <Route path="/payment/select" element={<PaymentSelect />} />

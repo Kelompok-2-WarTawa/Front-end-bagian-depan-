@@ -18,8 +18,11 @@ const PaymentBayar = () => {
     totalHarga = 0, 
     paymentMethod = 'BCA Virtual Account',
     fullName = currentUser.name,
-    email = currentUser.email
+    email = currentUser.email,
+    phoneNumber = '-',
+    idNumber = '-'
   } = location.state || {};
+  
 
   const isVirtualAccount = paymentMethod.toLowerCase().includes('virtual account');
 
@@ -79,6 +82,8 @@ const PaymentBayar = () => {
     const newTrx = {
         user: fullName,
         email: email,
+        phoneNumber: phoneNumber,
+        idNumber: idNumber,
         event: 'Cerita Anehku', 
         amount: formatRupiah(grandTotal),
         status: 'Lunas',

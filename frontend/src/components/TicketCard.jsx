@@ -1,7 +1,7 @@
 // src/components/TicketCard.jsx
 import React from 'react';
 
-const TicketCard = ({ title, date, location, image }) => {
+const TicketCard = ({ title, date, location, image, onAction }) => {
   return (
     <div style={styles.card}>
       {/* Gambar Kecil di Kiri */}
@@ -16,7 +16,12 @@ const TicketCard = ({ title, date, location, image }) => {
 
       {/* Tombol di Kanan */}
       <div style={styles.action}>
-         <button className="btn btn-gold" style={{fontSize: '12px', padding: '8px 15px'}}>
+         {/* Pasang onClick di sini */}
+         <button 
+            onClick={onAction}
+            className="btn btn-gold" 
+            style={{fontSize: '12px', padding: '8px 15px'}}
+         >
             Lihat E-Ticket
          </button>
       </div>
