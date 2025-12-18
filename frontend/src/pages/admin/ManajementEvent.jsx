@@ -17,7 +17,7 @@ const ManajemenEvent = () => {
     lokasi: '',
     kota: '',
     price: '',
-    totalSeats: '', // <--- Field Baru: Total Kapasitas Event
+    totalSeats: '', // <--- Field: Total Kapasitas Event
     status: 'Published',
     image: '' 
   };
@@ -25,6 +25,7 @@ const ManajemenEvent = () => {
   const [formData, setFormData] = useState(initialFormState);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/immutability
     refreshData();
   }, []);
 

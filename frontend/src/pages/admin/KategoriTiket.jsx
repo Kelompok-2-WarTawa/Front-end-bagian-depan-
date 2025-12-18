@@ -1,7 +1,7 @@
 // src/pages/admin/KategoriTiket.jsx
 import React, { useState, useEffect } from 'react';
-import { getEvents } from '../../utils/eventStore'; // Import Event
-import { getTicketConfigByEvent, saveTicketConfig } from '../../utils/ticketStore'; // Import Store Tiket
+import { getEvents } from '../../utils/eventStore'; 
+import { getTicketConfigByEvent, saveTicketConfig } from '../../utils/ticketStore'; 
 
 const KategoriTiket = () => {
   // State Data
@@ -11,6 +11,7 @@ const KategoriTiket = () => {
 
   // 1. Load Daftar Event saat halaman dibuka
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setEvents(getEvents());
   }, []);
 
@@ -61,7 +62,7 @@ const KategoriTiket = () => {
         <p style={{ color: '#6B7280', marginTop: '5px' }}>Pilih event di bawah, lalu atur harga tiketnya.</p>
       </header>
 
-      {/* --- BAGIAN BARU: DROPDOWN PILIH EVENT --- */}
+      {/* --- DROPDOWN PILIH EVENT --- */}
       <div style={{ background: 'white', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', border: '1px solid #F3F4F6', marginBottom: '30px' }}>
         <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '10px', color: '#374151' }}>Pilih Event:</label>
         <select 
