@@ -66,6 +66,7 @@ const ManajemenEvent = () => {
     } else {
       // MODE TAMBAH BARU
       const newEvent = {
+        // eslint-disable-next-line react-hooks/purity
         id: Date.now(),
         ...formData
       };
