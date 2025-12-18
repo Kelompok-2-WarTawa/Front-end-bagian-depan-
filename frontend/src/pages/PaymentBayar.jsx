@@ -8,7 +8,6 @@ const PaymentBayar = () => {
   const navigate = useNavigate();
   const currentUser = { name: "Sutejo" };
 
-  // 1. AMBIL DATA DARI HALAMAN CHECKOUT
   const { 
     qtyReguler = 0, 
     qtyVVIP = 0, 
@@ -16,21 +15,27 @@ const PaymentBayar = () => {
     paymentMethod = 'BCA Virtual Account' 
   } = location.state || {};
 
-  // Cek apakah metode pembayaran adalah Virtual Account
   const isVirtualAccount = paymentMethod.toLowerCase().includes('virtual account');
 
-  // Generate Nomor Dummy
-  const nomorVA = "8801234567890"; // Contoh Nomor VA
-  const invoiceID = "INV-" + Math.floor(Math.random() * 1000000); // Random Invoice
+  // --- UPDATE PENTING DI SINI ---
+  // Gunakan useState agar nilai Invoice & VA HANYA dibuat 1x saat pertama load.
+  // Tidak akan berubah walaupun detiknya jalan.
+  const [transactionData] = useState(() => {
+    return {
+      nomorVA: "880" + Math.floor(1000000000 + Math.random() * 9000000000), // Random VA
+      invoiceID: "INV-" + Math.floor(100000 + Math.random() * 900000)      // Random Invoice
+    };
+  });
+  
+  const { nomorVA, invoiceID } = transactionData;
+  // -------------------------------
 
-  // Biaya Tambahan (Dummy Statis sesuai gambar)
   const adminFee = 20000;
   const platformFee = 29000;
-  const tax = totalHarga * 0.11; // PPN 11%
+  const tax = totalHarga * 0.11;
   const grandTotal = totalHarga + adminFee + platformFee + tax;
 
-  // --- 2. LOGIC TIMER MUNDUR (1 JAM) ---
-  const [timeLeft, setTimeLeft] = useState(3600); // 3600 detik = 1 jam
+  const [timeLeft, setTimeLeft] = useState(3600);
 
   useEffect(() => {
     if (timeLeft <= 0) return;
@@ -40,7 +45,6 @@ const PaymentBayar = () => {
     return () => clearInterval(interval);
   }, [timeLeft]);
 
-  // Format Detik ke Jam:Menit:Detik
   const formatTime = (seconds) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
@@ -48,12 +52,10 @@ const PaymentBayar = () => {
     return `${h.toString().padStart(2, '0')} : ${m.toString().padStart(2, '0')} : ${s.toString().padStart(2, '0')}`;
   };
 
-  // Helper Format Rupiah
   const formatRupiah = (number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
   };
 
-  // Hitung Batas Waktu (Jam sekarang + 1 jam)
   const deadline = new Date();
   deadline.setHours(deadline.getHours() + 1);
   const deadlineString = deadline.toLocaleString('id-ID', { 
@@ -66,10 +68,7 @@ const PaymentBayar = () => {
 
       <div style={{backgroundColor: '#0B1120', minHeight: '100vh', paddingBottom: '50px'}}>
         
-        {/* CONTAINER KUNING TENGAH */}
         <div style={styles.mainCard}>
-            
-            {/* Banner Atas */}
             <div style={styles.bannerContainer}>
                 <img 
                     src="https://placehold.co/800x200/111/F59E0B?text=EKRESA+CERITA+ANEHKU" 
@@ -78,7 +77,6 @@ const PaymentBayar = () => {
                 />
             </div>
 
-            {/* --- TIMER SECTION --- */}
             <div style={{textAlign: 'center', padding: '20px'}}>
                 {timeLeft > 0 ? (
                     <>
@@ -103,14 +101,12 @@ const PaymentBayar = () => {
                 )}
             </div>
 
-            {/* --- PAYMENT METHOD SECTION (DINAMIS) --- */}
             <div style={{textAlign: 'center', marginTop: '20px', marginBottom: '40px'}}>
                 <h3 style={{color: '#0E3695', marginBottom: '20px'}}>
                     Selesaikan pembayaran dengan {paymentMethod}
                 </h3>
 
                 {isVirtualAccount ? (
-                    // TAMPILAN JIKA VIRTUAL ACCOUNT
                     <div style={{backgroundColor: 'white', padding: '20px', borderRadius: '10px', maxWidth: '400px', margin: '0 auto', boxShadow: '0 2px 10px rgba(0,0,0,0.1)'}}>
                         <p style={{color: '#666', marginBottom: '5px'}}>Nomor Virtual Account</p>
                         <h2 style={{color: '#0E3695', fontSize: '32px', margin: '10px 0', letterSpacing: '2px'}}>
@@ -124,10 +120,8 @@ const PaymentBayar = () => {
                         </button>
                     </div>
                 ) : (
-                    // TAMPILAN JIKA E-WALLET (QR CODE)
                     <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                         <div style={{backgroundColor: 'white', padding: '15px', borderRadius: '10px'}}>
-                            {/* Dummy QR Code */}
                             <img 
                                 src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=WarTawaPayment" 
                                 alt="QR Code" 
@@ -144,16 +138,15 @@ const PaymentBayar = () => {
                 )}
             </div>
 
-            {/* --- INVOICE DETAIL (KARTU PUTIH BAWAH) --- */}
             <div style={styles.invoiceCard}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '15px'}}>
                     <span style={{fontWeight: 'bold', fontSize: '18px'}}>{paymentMethod}</span>
-                    {/* Logo Dummy Kecil */}
                     <div style={{width: '40px', height: '20px', backgroundColor: '#ccc', borderRadius: '4px'}}></div>
                 </div>
 
                 <div style={{marginBottom: '20px'}}>
                     <p style={{fontSize: '12px', color: '#666', margin: 0}}>Kode Invoice</p>
+                    {/* INI KODE INVOICE YANG SUDAH AMAN (TIDAK BERUBAH) */}
                     <p style={{fontWeight: 'bold', fontSize: '16px', margin: '5px 0'}}>{invoiceID}</p>
                     
                     <p style={{fontSize: '12px', color: '#666', margin: '15px 0 0 0'}}>Total Pembayaran</p>
@@ -162,31 +155,14 @@ const PaymentBayar = () => {
 
                 <hr style={{border: 'none', borderTop: '1px solid #eee', margin: '15px 0'}}/>
 
-                {/* Rincian Item */}
-                <div style={styles.row}>
-                    <span>VVIP ({qtyVVIP})</span>
-                    <span>{formatRupiah(qtyVVIP * 500000)}</span>
-                </div>
-                <div style={styles.row}>
-                    <span>Reguler ({qtyReguler})</span>
-                    <span>{formatRupiah(qtyReguler * 100000)}</span>
-                </div>
-                <div style={styles.row}>
-                    <span>Local Tax (11%)</span>
-                    <span>{formatRupiah(tax)}</span>
-                </div>
-                <div style={styles.row}>
-                    <span>Biaya Admin</span>
-                    <span>{formatRupiah(adminFee)}</span>
-                </div>
-                <div style={styles.row}>
-                    <span>Biaya Platform</span>
-                    <span>{formatRupiah(platformFee)}</span>
-                </div>
+                <div style={styles.row}><span>VVIP ({qtyVVIP})</span><span>{formatRupiah(qtyVVIP * 500000)}</span></div>
+                <div style={styles.row}><span>Reguler ({qtyReguler})</span><span>{formatRupiah(qtyReguler * 100000)}</span></div>
+                <div style={styles.row}><span>Local Tax (11%)</span><span>{formatRupiah(tax)}</span></div>
+                <div style={styles.row}><span>Biaya Admin</span><span>{formatRupiah(adminFee)}</span></div>
+                <div style={styles.row}><span>Biaya Platform</span><span>{formatRupiah(platformFee)}</span></div>
 
             </div>
 
-            {/* Tombol Kembali */}
             <div style={{textAlign: 'center', marginTop: '30px'}}>
                  <button onClick={() => navigate('/')} style={{background: 'none', border: 'none', color: 'white', textDecoration: 'underline', cursor: 'pointer'}}>
                     Kembali ke Menu Utama
@@ -201,46 +177,11 @@ const PaymentBayar = () => {
 
 // --- STYLES ---
 const styles = {
-  mainCard: {
-    backgroundColor: '#F59E0B', 
-    maxWidth: '600px', 
-    margin: '0 auto', 
-    minHeight: '100vh',
-    paddingBottom: '40px',
-    boxShadow: '0 0 20px rgba(0,0,0,0.5)',
-    position: 'relative'
-  },
-  bannerContainer: {
-    width: '100%', 
-    height: '180px', 
-    overflow: 'hidden',
-    borderBottomLeftRadius: '20px',
-    borderBottomRightRadius: '20px'
-  },
-  actionButton: {
-    backgroundColor: '#0E3695',
-    color: 'white',
-    border: 'none',
-    padding: '10px 25px',
-    borderRadius: '6px',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-    marginTop: '10px'
-  },
-  invoiceCard: {
-    backgroundColor: '#FFFBEB',
-    borderRadius: '12px',
-    padding: '25px',
-    margin: '0 20px',
-    color: '#333'
-  },
-  row: {
-    display: 'flex', 
-    justifyContent: 'space-between', 
-    marginBottom: '10px',
-    fontSize: '14px',
-    fontWeight: '500'
-  }
+  mainCard: { backgroundColor: '#F59E0B', maxWidth: '600px', margin: '0 auto', minHeight: '100vh', paddingBottom: '40px', boxShadow: '0 0 20px rgba(0,0,0,0.5)', position: 'relative' },
+  bannerContainer: { width: '100%', height: '180px', overflow: 'hidden', borderBottomLeftRadius: '20px', borderBottomRightRadius: '20px' },
+  actionButton: { backgroundColor: '#0E3695', color: 'white', border: 'none', padding: '10px 25px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' },
+  invoiceCard: { backgroundColor: '#FFFBEB', borderRadius: '12px', padding: '25px', margin: '0 20px', color: '#333' },
+  row: { display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '14px', fontWeight: '500' }
 };
 
 export default PaymentBayar;
