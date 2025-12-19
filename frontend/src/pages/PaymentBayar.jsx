@@ -171,7 +171,6 @@ const PaymentBayar = () => {
             <div style={styles.invoiceCard}>
                 <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee', paddingBottom: '15px', marginBottom: '15px'}}>
                     <span style={{fontWeight: 'bold', fontSize: '18px'}}>{paymentMethod}</span>
-                    <div style={{width: '40px', height: '20px', backgroundColor: '#ccc', borderRadius: '4px'}}></div>
                 </div>
 
                 <div style={{marginBottom: '20px'}}>
@@ -186,7 +185,6 @@ const PaymentBayar = () => {
 
                 <hr style={{border: 'none', borderTop: '1px solid #eee', margin: '15px 0'}}/>
 
-                {/* DETAIL TIKET (Rincian UI Asli Anda) */}
                 {qtyEarly > 0 && (
                     <div style={styles.row}>
                         <span>Early Bird ({qtyEarly})</span>
@@ -221,7 +219,7 @@ const PaymentBayar = () => {
                         fontWeight: 'bold', fontSize: '18px', cursor: 'pointer', marginBottom: '15px'
                     }}
                  >
-                    ✅ Saya Sudah Membayar
+                    Check Status Pesanan
                  </button>
 
                  <button onClick={() => navigate('/dashboard')} style={{background: 'none', border: 'none', color: 'white', textDecoration: 'underline', cursor: 'pointer'}}>

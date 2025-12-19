@@ -86,7 +86,7 @@ const PaymentConfirmation = () => {
                 <div style={styles.dropdownBody}>
                    {['BCA Virtual Account', 'BRI Virtual Account', 'Mandiri Virtual Account'].map((bank) => (
                       <div key={bank} style={selectedPayment === bank ? styles.optionSelected : styles.optionItem} onClick={() => selectMethod(bank)}>
-                        <img src={`https://placehold.co/30x20?text=Logo`} alt="icon" style={{marginRight: '10px', borderRadius:'3px'}}/>
+                        
                         {bank}
                       </div>
                    ))}
@@ -104,7 +104,7 @@ const PaymentConfirmation = () => {
                 <div style={styles.dropdownBody}>
                    {['GoPay', 'DANA', 'OVO'].map((wallet) => (
                       <div key={wallet} style={selectedPayment === wallet ? styles.optionSelected : styles.optionItem} onClick={() => selectMethod(wallet)}>
-                         <img src={`https://placehold.co/30x20?text=Logo`} alt="icon" style={{marginRight: '10px', borderRadius:'3px'}}/>
+                         
                          {wallet}
                       </div>
                    ))}

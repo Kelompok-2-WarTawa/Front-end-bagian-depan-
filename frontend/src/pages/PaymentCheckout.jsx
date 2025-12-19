@@ -139,7 +139,6 @@ const PaymentCheckout = () => {
           <div style={styles.whiteCard}>
             <h3 style={styles.sectionHeader}>Payment Method</h3>
             <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginTop: '10px'}}>
-                <div style={styles.paymentIcon}>💳</div>
                 <div style={{fontWeight: 'bold', fontSize: '18px', color: '#0E3695'}}>{paymentMethod}</div>
             </div>
           </div>
