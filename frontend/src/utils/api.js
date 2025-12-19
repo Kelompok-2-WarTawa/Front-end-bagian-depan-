@@ -2,7 +2,7 @@
 //
 // just for little while until our vps and domain set.
 //
-const BASE_URL = "https://wartawa.online/api";
+const BASE_URL = "https://api.wartawa.online/api";
 
 export const apiRequest = async (endpoint, method = 'GET', body = null) => {
     // 1. Ambil Session
