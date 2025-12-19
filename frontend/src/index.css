@@ -3,7 +3,9 @@
   line-height: 1.5;
   font-weight: 400;
 
+  /* Warna Background Dasar */
   background-color: #0F172A;
+  color: white; /* Tambahkan warna teks putih agar terbaca */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,8 +24,13 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  /* HAPUS DUA BARIS INI AGAR KONTEN TIDAK DI TENGAH: */
+  /* display: flex; */
+  /* place-items: center; */
+  
+  /* GANTI DENGAN INI: */
+  display: block; 
+  
   min-width: 320px;
   min-height: 100vh;
 }
@@ -43,6 +50,7 @@ button {
   background-color: #1a1a1a;
   cursor: pointer;
   transition: border-color 0.25s;
+  color: white; /* Pastikan teks button terlihat */
 }
 button:hover {
   border-color: #646cff;
@@ -52,6 +60,11 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+/* SAYA NONAKTIFKAN BAGIAN INI 
+   Agar website tetap bertema GELAP meskipun settingan HP/Laptop user Light Mode.
+   Jika ini dinyalakan, website akan jadi putih dan teks jadi gelap (merusak desain WarTawa).
+*/
+/*
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -62,5 +75,7 @@ button:focus-visible {
   }
   button {
     background-color: #f9f9f9;
+    color: black;
   }
 }
+*/

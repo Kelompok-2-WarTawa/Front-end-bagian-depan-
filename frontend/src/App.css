@@ -1,3 +1,5 @@
+/* src/App.css */
+
 :root {
   /* Variabel Warna Utama */
   --brand-gold: #F59E0B;
@@ -19,13 +21,20 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   min-height: 100vh;
   overflow-x: hidden;
+  /* Pastikan display block agar tidak maksa ke tengah */
+  display: block;
 }
 
 #root {
   width: 100%;
+  /* PENTING: Agar Footer selalu di bawah & Rata Kiri */
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
 }
 
-/* Container responsive agar konten di tengah */
+/* Container responsive agar konten di tengah horizontal */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -51,10 +60,10 @@ body {
 /* 1. Button Gold (Untuk Register & Buy Ticket) */
 .btn-gold {
   background-color: var(--brand-gold);
-  color: white;
+  color: white; /* Diubah jadi putih agar kontras lebih baik di dark mode */
 }
 .btn-gold:hover {
-  background-color: #D97706; /* Warna lebih gelap saat hover */
+  background-color: #D97706; 
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
 }
@@ -67,7 +76,7 @@ body {
 }
 .btn-outline:hover {
   background-color: var(--brand-gold);
-  color: black;
+  color: white; /* Saat hover teks jadi putih */
   transform: translateY(-2px);
 }
 

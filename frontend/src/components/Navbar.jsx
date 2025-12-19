@@ -1,12 +1,17 @@
 // src/components/Navbar.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom'; // Import useSearchParams
 import logoImg from '../assets/logo.png'; 
 import '../App.css'; 
 import { logoutUser } from '../utils/authStore'; 
 
 const Navbar = ({ user, onSearch }) => { 
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  
+  // State lokal untuk menampung teks ketikan
+  const [keyword, setKeyword] = useState(searchParams.get('q') || '');
+  
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -29,6 +34,18 @@ const Navbar = ({ user, onSearch }) => {
     navigate('/profile', { state: { defaultTab: 'profile' } });
   };
 
+  // FUNGSI PENCARIAN (Hanya jalan saat Enter)
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+        if (onSearch) {
+            onSearch(keyword); // Kirim ke parent jika ada props onSearch
+        } else {
+            // Default behavior: pindah ke home dengan query
+            navigate(`/?q=${keyword}`);
+        }
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -49,14 +66,15 @@ const Navbar = ({ user, onSearch }) => {
           <span><span style={{color: '#F59E0B'}}>War</span>Tawa</span>
         </div>
 
-        {/* SEARCH BAR (INTEGRATED) */}
+        {/* SEARCH BOX */}
         <div style={styles.searchBox}>
           <input 
             type="text" 
-            placeholder="Cari event, artis, atau kota..." 
+            placeholder="Cari event... (Tekan Enter)" 
             style={styles.input} 
-            // INI KUNCINYA: Kirim teks ke parent (UserDashboard)
-            onChange={(e) => onSearch && onSearch(e.target.value)}
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)} // Simpan di state lokal dulu
+            onKeyDown={handleKeyDown} // Eksekusi saat Enter
           />
         </div>
 
@@ -74,27 +92,17 @@ const Navbar = ({ user, onSearch }) => {
 
                 {isOpen && (
                   <div className="dropdown-menu">
-                    <div className="dropdown-item" onClick={handleGoToProfile}>
-                      📄 Informasi Dasar
-                    </div>
-                    <div className="dropdown-item" onClick={handleGoToSettings}>
-                      ⚙️ Pengaturan
-                    </div>
+                    <div className="dropdown-item" onClick={handleGoToProfile}>📄 Informasi Dasar</div>
+                    <div className="dropdown-item" onClick={handleGoToSettings}>⚙️ Pengaturan</div>
                     <div style={{height: '1px', background: '#374151', margin: '4px 0'}}></div>
-                    <div className="dropdown-item" onClick={handleLogout} style={{color: '#EF4444'}}>
-                      🚪 Keluar
-                    </div>
+                    <div className="dropdown-item" onClick={handleLogout} style={{color: '#EF4444'}}>🚪 Keluar</div>
                   </div>
                 )}
             </div>
           ) : (
             <div style={{display: 'flex', gap: '10px'}}>
-              <button className="btn btn-outline" onClick={() => navigate('/login')}>
-                Login
-              </button>
-              <button className="btn btn-gold" onClick={() => navigate('/register')}>
-                Register
-              </button>
+              <button className="btn btn-outline" onClick={() => navigate('/login')}>Login</button>
+              <button className="btn btn-gold" onClick={() => navigate('/register')}>Register</button>
             </div>
           )}
         </div>

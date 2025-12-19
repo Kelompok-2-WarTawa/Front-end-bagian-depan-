@@ -129,12 +129,6 @@ const UserProfile = () => {
                   <label style={styles.label}>Nomor Telepon</label>
                   <input type="tel" name="phone" value={formData.phone} onChange={handleChange} style={styles.input} />
                 </div>
-                <div style={styles.inputGroup}>
-                  <label style={styles.label}>Bergabung Sejak</label>
-                  <div style={{...styles.input, backgroundColor: 'transparent', border: '1px solid #374151', color: '#9CA3AF'}}>
-                     {currentUser.joinDate}
-                  </div>
-                </div>
               </div>
               <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'flex-end' }}>
                 <button type="button" onClick={handleSaveProfile} className="btn btn-gold" style={{ padding: '12px 40px', cursor: 'pointer', background: '#F59E0B', border: 'none', borderRadius: '8px', color: 'black', fontWeight: 'bold' }}>
