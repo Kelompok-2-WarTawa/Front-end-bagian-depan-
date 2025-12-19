@@ -27,8 +27,6 @@ const KategoriTiket = () => {
             const selectedEvent = events.find(ev => ev.id === eventId);
 
             // LOGIKA MAPPING:
-            // Backend menyimpan phases sebagai array: [{name, price, quota, ...}, ...]
-            // Untuk UI ini, kita ambil fase pertama sebagai default edit
             const phase = selectedEvent.phases && selectedEvent.phases.length > 0
                 ? selectedEvent.phases[0]
                 : { price: 0, quota: 0, start_date: '', end_date: '' };
@@ -56,9 +54,7 @@ const KategoriTiket = () => {
     };
 
     const handleSave = async () => {
-        // NOTE: Backend saat ini menggunakan endpoint /events (PUT) untuk update semua data event sekaligus.
-        // Untuk update harga spesifik fase, idealnya butuh endpoint khusus.
-        // Di sini kita tampilkan alert simulasi agar tidak merusak data lain.
+
         alert("Untuk mengubah harga tiket secara permanen, silakan gunakan menu 'Manajemen Event' dan edit event terkait. Fitur update parsial sedang dikembangkan.");
     };
 

@@ -1,6 +1,6 @@
 // src/utils/ticketStore.js
 
-// 1. Data Default (Template bawaan kamu)
+// 1. Data Default 
 // Ini akan dipakai jika sebuah event belum pernah diatur harganya
 const defaultData = {
   early: { 

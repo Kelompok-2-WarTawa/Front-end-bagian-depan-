@@ -1,17 +1,12 @@
-// src/utils/api.js
-//
-// just for little while until our vps and domain set.
-
-//
 const BASE_URL = "https://api.wartawa.online/api";
 
 export const apiRequest = async (endpoint, method = 'GET', body = null) => {
-    // 1. Ambil Session
+   
     const sessionString = localStorage.getItem('warTawaSession');
     const session = sessionString ? JSON.parse(sessionString) : null;
     const token = session?.token;
 
-    // 2. Headers
+ 
     const headers = {
         'Content-Type': 'application/json',
     };
@@ -20,7 +15,7 @@ export const apiRequest = async (endpoint, method = 'GET', body = null) => {
         headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // 3. Config
+
     const config = {
         method,
         headers,
@@ -33,13 +28,13 @@ export const apiRequest = async (endpoint, method = 'GET', body = null) => {
     try {
         const response = await fetch(`${BASE_URL}${endpoint}`, config);
 
-        // Handle response kosong (misal 204 No Content)
+   
         if (response.status === 204) return null;
 
         const data = await response.json();
 
         if (!response.ok) {
-            // Auto Logout HANYA jika token expired/invalid (401)
+         
             if (response.status === 401) {
                 console.warn("Token Expired/Invalid. Logout otomatis.");
                 localStorage.removeItem('warTawaSession');
