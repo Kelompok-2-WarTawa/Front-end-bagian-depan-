@@ -1,84 +1,158 @@
-# 🎫 Event Ticketing System (Frontend)
+# Frontend - Tugas UAS Kelompok 2 WarTawa
 
-Aplikasi web modern untuk pemesanan tiket event secara online. Dibangun menggunakan **React.js**, aplikasi ini mensimulasikan alur pembelian tiket yang lengkap mulai dari pemilihan event, pemilihan kursi (seat selection), hingga simulasi pembayaran dan penerbitan E-Ticket.
-
-Aplikasi ini juga dilengkapi dengan **Panel Admin** untuk manajemen event, pengaturan kuota kursi, dan monitoring transaksi.
+Repositori ini berisi kode sumber frontend untuk sistem ticketing wisata "WarTawa". Frontend ini dibangun menggunakan framework **React.js**, **Vite**, **Zustand**, dan **Tailwind CSS**.
 
 ---
 
-## 🚀 Fitur Unggulan
+## 1. Tim dan Anggota
 
-### 👤 Halaman Pengguna (User)
-* **Browsing Event:** Melihat daftar event yang tersedia dengan status tiket (Available/Sold Out).
-* **Detail Event Dinamis:** Menampilkan deskripsi, lokasi, dan status kategori tiket (Early Bird, Presale, Reguler) berdasarkan tanggal dan kuota.
-* **Booking Flow (4 Steps):**
-    1.  **Select Seat:** Memilih kursi secara visual melalui denah interaktif. Jumlah kursi menyesuaikan kapasitas gedung yang diatur Admin.
-    2.  **Personal Info:** Pengisian data diri pemesan.
-    3.  **Confirmation:** Review pesanan sebelum pembayaran.
-    4.  **Checkout:** Pemilihan metode pembayaran (Virtual Account / E-Wallet).
-* **Simulasi Pembayaran:** Halaman invoice dengan *countdown timer* dan validasi pembayaran otomatis.
-* **E-Ticket:** Halaman tiket digital dengan QR Code setelah pembayaran berhasil.
-* **Riwayat Transaksi:** Dashboard user untuk melihat tiket yang telah dibeli.
+**Kelompok 2 - WarTawa**
 
-### 🛡️ Halaman Admin
-* **Manajemen Event:** CRUD (Create, Read, Update, Delete) data event, termasuk upload gambar banner.
-* **Manajemen Kapasitas:** Mengatur `Total Seats` (Kapasitas Gedung) yang akan digenerate otomatis menjadi peta kursi.
-* **Konfigurasi Tiket:** Mengatur harga, kuota per kategori, dan periode tanggal penjualan.
-* **Laporan Transaksi:** Melihat daftar pesanan masuk dari user.
+* **Daffa Hakim Matondang** - **123140002** (Database Administrator & Schema)
+* **Arrauf Setiawan Muhammad Jabar** - **123140032** (Project Leader)
+* **Varasina Farmadani** - **123140107** (Backend Developer & Logic)
+* **Fadzilah saputri** - **123140149** (UI/UX Designer)
+* **Fadina Mustika Ratnaningsih** - **123140157** (Frontend Developer)
 
 ---
 
-## 🛠️ Teknologi yang Digunakan
+## 2. Deskripsi Project dan Fitur Utama
 
-* **Core:** [React.js](https://reactjs.org/) (Vite)
-* **Routing:** [React Router DOM](https://reactrouter.com/)
+WarTawa adalah platform manajemen tiket acara stand-up comedy. Bagian Frontend ini menyediakan antarmuka pengguna yang responsif untuk proses pembelian tiket yang cepat serta dashboard manajemen yang komprehensif bagi admin.
+
+**Fitur Utama:**
+
+### A. Autentikasi & Manajemen Pengguna
+
+* **Login & Register:** Sistem masuk dan daftar akun untuk Customer.
+* **Role Based Interface:** Perbedaan tampilan antarmuka secara otomatis antara `ADMIN` dan `USER`.
+* **State Persistence:** Menggunakan **Zustand** untuk menjaga sesi login pengguna tetap aktif.
+
+### B. Event & Tiket Discovery
+
+* **Browse Events:** Menampilkan daftar event yang tersedia secara dinamis.
+* **Detail Event:** Informasi lengkap mengenai deskripsi, lokasi, dan harga tiket.
+* **Ticket Phases:** Mendukung pengaturan harga berbeda berdasarkan fase (misal: Early Bird, Presale, Normal).
+
+### C. Sistem Transaksi (Checkout Flow)
+
+* **Multi-step Booking:** Proses pemesanan terstruktur mulai dari pemilihan tiket, pengisian data, hingga metode pembayaran.
+* **Payment Confirmation:** Antarmuka untuk mengonfirmasi pembayaran dan unggah bukti transaksi.
+* **E-Ticket Generation:** Tampilan tiket digital yang dapat diakses melalui dashboard user setelah transaksi divalidasi.
+
+### D. Admin Management Dashboard
+
+* **Event Management:** CRUD (Create, Read, Update, Delete) data event wisata.
+* **Transaction Monitoring:** Dashboard untuk melihat statistik penjualan dan daftar transaksi masuk.
+* **Ticket Validation:** Fitur scan/verifikasi tiket untuk memvalidasi pengunjung.
+* **Ekspor Data:** Fitur untuk mengunduh laporan transaksi dalam format tertentu.
+
+---
+
+## 3. Tech Stack
+
+* **Core Framework:** React.js (Vite)
 * **State Management:** React Hooks (`useState`, `useEffect`, `useContext`)
-* **Data Persistence:** `localStorage` (Simulasi Database tanpa Backend)
 * **Styling:** CSS in JS (Inline Styles) & CSS Modules
+* **Routing:** React Router DOM
 * **Icons & Assets:** Placehold.co (Dummy Images)
+* **HTTP Client:** Fetch API (Terintegrasi dengan Backend API)
 
 ---
 
-## 📂 Struktur Folder
+## 4. Cara Instalasi dan Menjalankan (Local Development)
 
+### Prasyarat
+
+* Node.js (Versi 18 ke atas)
+* npm atau yarn
+
+### Langkah-langkah
+
+1. **Clone Repositori:**
 ```bash
-src/
-├── components/       # Komponen UI yang dapat digunakan kembali (Navbar, Footer, Card, dll)
-├── pages/            # Halaman utama aplikasi
-│   ├── admin/        # Halaman khusus Admin (Dashboard, Manajemen Event, dll)
-│   ├── payment/      # Flow pembayaran (Step 1 - Step 4 & Invoice)
-│   ├── DetailEvent.jsx
-│   ├── UserDashboard.jsx
-│   └── ...
-├── utils/            # Logic simulasi database (authStore, eventStore, ticketStore, transactionStore)
-├── App.jsx           # Konfigurasi Routing utama
-└── main.jsx          # Entry point
+git clone <repository-url>
+cd front-end-bagian-depan-/frontend
 
-💻 Cara Menjalankan (Installation)
-Pastikan kamu sudah menginstall Node.js di komputermu.
 ```
 
-## 💻 Cara Menjalankan (Installation)
-Pastikan kamu sudah menginstall Node.js di komputermu.
 
-1. Clone repositori ini
-
-```bash
-git clone [https://github.com/username-kamu/nama-repo.git](https://github.com/username-kamu/nama-repo.git)
-cd nama-repo
-```
-
-2. Install dependencies
-
+2. **Instalasi Dependensi:**
+Gunakan npm untuk mengunduh semua library yang diperlukan.
 ```bash
 npm install
+
 ```
 
-3. Jalankan aplikasi (Development Mode)
 
+3. **Konfigurasi Environment:**
+Buat file `.env` di folder root frontend dan sesuaikan dengan URL backend Anda:
+```env
+VITE_API_URL=http://localhost:6543/api
+
+```
+
+
+4. **Jalankan Mode Pengembangan:**
 ```bash
 npm run dev
-```
-4. Buka di Browser Akses http://localhost:5173 (atau port lain yang ditampilkan di terminal).
 
-## 🔑 Demo (Simulasi)
+```
+
+
+**Aplikasi akan berjalan di `http://localhost:5173`.**
+5. **Build untuk Produksi:**
+```bash
+npm run build
+
+```
+
+
+
+---
+
+## 5. Link Deployment
+
+* **Frontend:** 
+* **Backend API:** 
+
+---
+
+## 6. Dokumentasi Komponen
+
+### Public Pages
+
+| Page | Route | Deskripsi |
+| --- | --- | --- |
+| Home | `/` | Halaman utama menampilkan daftar event. |
+| Login | `/login` | Halaman masuk aplikasi. |
+| Register | `/register` | Halaman pendaftaran akun baru. |
+| Detail | `/event/:id` | Informasi mendalam mengenai event tertentu. |
+
+### User Dashboard
+
+| Page | Route | Deskripsi |
+| --- | --- | --- |
+| Profile | `/profile` | Pengaturan profil dan data diri. |
+| My Tickets | `/dashboard` | Daftar tiket yang telah dibeli. |
+| Checkout | `/checkout` | Proses pemesanan dan pembayaran. |
+| E-Ticket | `/e-ticket/:id` | Tampilan tiket digital untuk check-in. |
+
+### Admin Panel
+
+| Page | Route | Deskripsi |
+| --- | --- | --- |
+| Admin Dashboard | `/admin/dashboard` | Statistik utama dan ringkasan data. |
+| Manage Event | `/admin/events` | Pengelolaan event. |
+| Transactions | `/admin/transactions` | Daftar riwayat pembayaran user. |
+| Validation | `/admin/validation` | Verifikasi tiket ketika event berlangsung. |
+
+---
+
+## 7. Screenshot Aplikasi
+
+
+
+---
+
+## 8. Link Video Presentasi
