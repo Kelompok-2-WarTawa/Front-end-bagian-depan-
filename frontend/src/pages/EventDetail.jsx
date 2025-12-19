@@ -1,35 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { apiRequest } from '../utils/api'; // Integrasi API
+import { useNavigate, useParams } from 'react-router-dom';
+import { apiRequest } from '../utils/api';
 
 const EventDetail = () => {
     const navigate = useNavigate();
-    const location = useLocation();
-
-    const eventId = location.state?.id;
+    const { id } = useParams(); // Ambil ID dari URL
 
     const [eventData, setEventData] = useState(null);
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Cek Session
+        // 1. Cek User
         const sessionString = localStorage.getItem('warTawaSession');
         if (sessionString) setCurrentUser(JSON.parse(sessionString));
 
-        if (!eventId) {
-            navigate('/dashboard');
-            return;
-        }
-
+        // 2. Fetch Detail
         const fetchDetail = async () => {
             try {
-                // GET /api/events/{id}
-                const data = await apiRequest(`/events/${eventId}`);
+                if (!id) return;
+                const data = await apiRequest(`/events/${id}`);
 
-                // Format ulang agar sesuai UI
                 setEventData({
                     id: data.id,
                     title: data.name,
@@ -37,29 +30,34 @@ const EventDetail = () => {
                     date: new Date(data.date).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
                     location: data.venue,
                     image: data.image_url || "https://placehold.co/400x300",
-                    phases: data.phases // Array fase tiket langsung dari DB
+                    phases: data.phases
                 });
 
             } catch (error) {
                 console.error("Error fetch detail:", error);
-                alert("Gagal memuat detail event.");
+                // Tetap di halaman ini, render pesan error nanti
             } finally {
                 setLoading(false);
             }
         };
         fetchDetail();
-    }, [eventId, navigate]);
+    }, [id]);
 
     const handleBuyTicket = () => {
-        if (!currentUser) return navigate('/login');
-        // Bawa data event yang sudah lengkap ke PaymentSelect
+        if (!currentUser) {
+            alert("Silakan Login terlebih dahulu untuk membeli tiket.");
+            navigate('/login');
+            return;
+        }
+        // Kirim data event ke halaman pemilihan kursi
         navigate('/payment/select', { state: { eventData: eventData } });
     };
 
     const formatRupiah = (number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
 
-    if (loading) return <div style={{ padding: '50px', color: 'white', textAlign: 'center' }}>Loading Event Detail...</div>;
-    if (!eventData) return null;
+    if (loading) return <div style={{ padding: '50px', color: 'white', textAlign: 'center', background: '#0B1120', minHeight: '100vh' }}>Loading Event Detail...</div>;
+
+    if (!eventData) return <div style={{ padding: '50px', color: 'white', textAlign: 'center', background: '#0B1120', minHeight: '100vh' }}>Event Tidak Ditemukan. <br /><button onClick={() => navigate('/')} className="btn btn-gold" style={{ marginTop: '20px' }}>Kembali ke Home</button></div>;
 
     return (
         <>
@@ -92,7 +90,6 @@ const EventDetail = () => {
                         <div style={styles.cardBody}>
                             <div style={styles.ticketDropdownHeader}>Available Categories</div>
 
-                            {/* Render Fase Tiket dari Backend */}
                             {eventData.phases && eventData.phases.map((phase) => (
                                 <div key={phase.id} style={styles.ticketRow}>
                                     <div style={{ fontWeight: 'bold', fontSize: '18px', width: '130px', color: '#0E3695' }}>

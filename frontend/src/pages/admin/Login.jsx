@@ -1,30 +1,45 @@
-// src/pages/admin/Login.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { loginAdmin, initMasterAdmin } from '../../utils/authStore';
+import { apiRequest } from '../../utils/api'; // Gunakan API, bukan authStore
 
 const LoginAdmin = () => {
     const navigate = useNavigate();
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    // 1. Buat Akun Admin Default saat halaman dibuka pertama kali
-    useEffect(() => {
-        initMasterAdmin();
-    }, []);
-
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+        setLoading(true);
 
-        // 2. Gunakan fungsi login KHUSUS ADMIN
-        const result = loginAdmin(formData.email, formData.password);
+        try {
+            // 1. Tembak API Login
+            const response = await apiRequest('/users/login', 'POST', {
+                email: formData.email,
+                password: formData.password
+            });
 
-        if (result.success) {
+            // 2. Cek Role (Backend mengirim user.role)
+            // Pastikan backend mengirim string "admin" (huruf kecil/besar disesuaikan)
+            if (response.user.role.toLowerCase() !== 'admin') {
+                throw new Error("Akses Ditolak: Akun ini bukan Admin.");
+            }
+
+            // 3. Simpan Sesi
+            const sessionData = {
+                token: response.token,
+                ...response.user
+            };
+            localStorage.setItem('warTawaSession', JSON.stringify(sessionData));
+
             alert("Selamat datang, Admin!");
             navigate('/admin/dashboard');
-        } else {
-            setError(result.message);
+
+        } catch (err) {
+            setError(err.message || "Login gagal.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -66,15 +81,10 @@ const LoginAdmin = () => {
                         />
                     </div>
 
-                    <button type="submit" style={{ backgroundColor: '#0B1120', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' }}>
-                        Masuk ke Dashboard
+                    <button type="submit" disabled={loading} style={{ backgroundColor: '#0B1120', color: 'white', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: 'pointer', marginTop: '10px' }}>
+                        {loading ? 'Memuat...' : 'Masuk ke Dashboard'}
                     </button>
                 </form>
-
-                <div style={{ marginTop: '20px', textAlign: 'center', fontSize: '12px', color: '#666' }}>
-                    Hint: Gunakan <b>admin@wartawa.com</b> / <b>admin</b>
-                </div>
-
             </div>
         </div>
     );

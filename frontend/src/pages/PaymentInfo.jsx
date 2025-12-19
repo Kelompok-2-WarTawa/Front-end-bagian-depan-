@@ -10,14 +10,15 @@ const PaymentInfo = () => {
     // 1. Ambil Data dari Step Sebelumnya (Estafet)
     const { eventData, ticketData } = location.state || {};
 
-    // 2. Ambil User dari Session (Fix)
+    // 2. Ambil User dari Session
     const sessionString = localStorage.getItem('warTawaSession');
     const currentUser = sessionString ? JSON.parse(sessionString) : { name: "Guest" };
 
     // 3. State Form
+    // Backend membutuhkan NIK, jadi kita tambahkan input NIK di sini jika belum ada
     const [formData, setFormData] = useState({
         fullName: currentUser.name !== "Guest" ? currentUser.name : '',
-        idNumber: currentUser.nik || '', // Pre-fill NIK jika ada di session
+        idNumber: currentUser.nik || '',
         phoneNumber: currentUser.phone_number || '', // Backend field: phone_number
         email: currentUser.email || '',
         agreed: false
@@ -47,6 +48,9 @@ const PaymentInfo = () => {
         });
     };
 
+    const formatRupiah = (number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(number);
+
+    // Jika data hilang (refresh), kembalikan ke dashboard
     if (!eventData || !ticketData) {
         navigate('/dashboard');
         return null;
@@ -89,6 +93,30 @@ const PaymentInfo = () => {
                     </div>
                 </div>
 
+                {/* RINGKASAN PESANAN DI BAWAH */}
+                <div style={styles.summaryBoxOuter}>
+                    <h3 style={{ marginTop: 0, marginBottom: '15px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>Rincian Tiket</h3>
+
+                    {/* Rincian Tiket */}
+                    <div style={styles.summaryRow}>
+                        <span>{ticketData.selectedSeats.length} x {ticketData.phaseName} Ticket</span>
+                        <span>{formatRupiah(ticketData.selectedSeats.length * ticketData.pricePerSeat)}</span>
+                    </div>
+
+                    <div style={{ ...styles.summaryRow, fontSize: '13px', color: '#555', marginTop: '10px', marginBottom: '15px' }}>
+                        <span>Kursi:</span>
+                        <span style={{ textAlign: 'right', maxWidth: '200px', wordBreak: 'break-word' }}>
+                            {ticketData.selectedSeats.length > 0 ? ticketData.selectedSeats.map(s => s.label).join(', ') : '-'}
+                        </span>
+                    </div>
+
+                    <hr style={{ border: 'none', borderTop: '1px solid #ccc', margin: '15px 0' }} />
+                    <div style={{ ...styles.summaryRow, fontSize: '18px' }}>
+                        <span>TOTAL</span>
+                        <span style={{ color: '#0E3695' }}>{formatRupiah(ticketData.selectedSeats.length * ticketData.pricePerSeat)}</span>
+                    </div>
+                </div>
+
             </div>
             <Footer />
         </>
@@ -114,6 +142,9 @@ const styles = {
     buttonRow: { display: 'flex', justifyContent: 'space-between', gap: '20px' },
     btnBack: { flex: 1, padding: '15px', backgroundColor: '#1F2937', color: 'white', border: 'none', borderRadius: '8px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' },
     btnNext: { flex: 1, padding: '15px', backgroundColor: '#1F2937', color: 'white', border: 'none', borderRadius: '8px', fontSize: '18px', fontWeight: 'bold', cursor: 'pointer' },
+
+    summaryBoxOuter: { backgroundColor: '#D1D5DB', borderRadius: '12px', padding: '20px', maxWidth: '500px', margin: '30px auto 0', color: '#000', fontWeight: 'bold' },
+    summaryRow: { display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }
 };
 
 export default PaymentInfo;

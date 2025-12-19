@@ -1,4 +1,3 @@
-// src/pages/admin/AdminLayout.jsx
 import React from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 
@@ -7,7 +6,9 @@ const AdminLayout = () => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        localStorage.removeItem('warTawaSession'); // Hapus token asli
+        // Hapus Token Session
+        localStorage.removeItem('warTawaSession');
+        // Redirect ke Login Admin
         navigate('/admin/login');
     };
 

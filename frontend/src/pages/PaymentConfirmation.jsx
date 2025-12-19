@@ -7,7 +7,6 @@ const PaymentConfirmation = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    // Ambil user dari session
     const sessionString = localStorage.getItem('warTawaSession');
     const currentUser = sessionString ? JSON.parse(sessionString) : { name: "Guest" };
 
@@ -123,7 +122,6 @@ const PaymentConfirmation = () => {
                 <div style={styles.summaryBoxOuter}>
                     <h3 style={{ marginTop: 0, marginBottom: '15px', borderBottom: '1px solid #ccc', paddingBottom: '10px' }}>Rincian Tiket</h3>
 
-                    {/* Karena struktur TicketData kita sekarang selectedSeats: [obj, obj] */}
                     {ticketData.selectedSeats.length > 0 && (
                         <div style={styles.summaryRow}>
                             <span>Tiket {ticketData.phaseName}</span>

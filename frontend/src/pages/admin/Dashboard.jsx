@@ -1,7 +1,6 @@
-// src/pages/admin/Dashboard.jsx
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { apiRequest } from '../../utils/api';
+import { apiRequest } from '../../utils/api'; // Pastikan import ini benar
 
 const Dashboard = () => {
     const [stats, setStats] = useState({
@@ -16,14 +15,16 @@ const Dashboard = () => {
     useEffect(() => {
         const fetchDashboardData = async () => {
             try {
-                // GET /api/dashboard
+                // Panggil Endpoint Dashboard Admin
                 const data = await apiRequest('/dashboard');
 
                 setStats({
-                    totalEvents: data.active_events,
+                    totalEvents: data.active_events, // Backend mengirim active_events
                     activeEvents: data.active_events,
                     totalIncome: data.total_revenue,
                     totalTicketsSold: data.tickets_sold,
+
+                    // Format Transaksi Terbaru
                     recentSales: data.recent_transactions.map(t => ({
                         user: t.user,
                         email: '-',
@@ -46,7 +47,7 @@ const Dashboard = () => {
 
     const formatRupiah = (num) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(num);
 
-    if (loading) return <div style={{ padding: '40px', textAlign: 'center' }}>Memuat Data Dashboard...</div>;
+    if (loading) return <div style={{ padding: '40px', textAlign: 'center', color: '#6B7280' }}>Memuat Data Statistik...</div>;
 
     return (
         <div style={{ color: '#111827' }}>
@@ -110,7 +111,7 @@ const Dashboard = () => {
 
                 {stats.recentSales.length === 0 ? (
                     <div style={{ textAlign: 'center', color: '#9CA3AF', padding: '30px', background: '#F9FAFB', borderRadius: '8px' }}>
-                        Belum ada transaksi masuk.
+                        Belum ada transaksi masuk. Data masih kosong.
                     </div>
                 ) : (
                     <div style={{ overflowX: 'auto' }}>

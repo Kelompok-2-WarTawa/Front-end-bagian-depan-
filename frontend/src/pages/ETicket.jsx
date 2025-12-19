@@ -5,49 +5,74 @@ import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
-import { apiRequest } from '../utils/api'; // Integrasi API
+import { apiRequest } from '../utils/api';
 
 const ETicket = () => {
     const location = useLocation();
-    const navigate = useNavigate();
     const ticketRef = useRef();
 
     const [currentUser, setCurrentUser] = useState(null);
 
-    // Data dari navigate sebelumnya
+    // Data dari navigate sebelumnya (Dashboard / Payment)
     const state = location.state || {};
     const [invoiceID] = useState(state.invoiceID || null);
-    const [ticketDetails, setTicketDetails] = useState(state);
-    const [loading, setLoading] = useState(!state.eventData);
+
+    // State untuk menampung detail tiket
+    // Default ambil dari state navigasi
+    const [ticketDetails, setTicketDetails] = useState({
+        eventData: state.eventData || {},
+        userData: state.userData || {},
+        ticketData: state.ticketData || { selectedSeats: [] }
+    });
+
+    // Cek apakah data kursi sudah ada?
+    const hasSeats = ticketDetails.ticketData?.selectedSeats && ticketDetails.ticketData.selectedSeats.length > 0;
+
+    // Loading jika Invoice ada TAPI (Event Data kosong ATAU Kursi kosong)
+    const [loading, setLoading] = useState(invoiceID && (!ticketDetails.eventData?.nama || !hasSeats));
 
     useEffect(() => {
-        // Cek Session
+        // 1. Cek Session
         const sessionString = localStorage.getItem('warTawaSession');
         if (sessionString) setCurrentUser(JSON.parse(sessionString));
 
-        // Jika data tidak ada dari state, coba fetch dari API
-        if (invoiceID && !state.eventData) {
-            const fetchBooking = async () => {
+        // 2. Fetch Data Lengkap jika data di state tidak lengkap (khususnya Kursi)
+        if (invoiceID && (!ticketDetails.eventData?.nama || !hasSeats)) {
+            const fetchBookingDetail = async () => {
                 try {
-                    // GET /api/bookings/{code}
+                    // Panggil API Detail Booking untuk dapat Kursi
                     const booking = await apiRequest(`/bookings/${invoiceID}`);
-                    setTicketDetails({
-                        eventData: { nama: booking.event_name, jadwal: "Lihat Dashboard", lokasi: "TBA" },
-                        userData: { fullName: "User", email: "-" },
-                        ticketData: { selectedSeats: booking.seat_labels.map(l => ({ label: l })) }
-                    });
+
+                    setTicketDetails(prev => ({
+                        ...prev,
+                        // Merge Event Data (Prioritas data API, fallback ke data state lama)
+                        eventData: {
+                            nama: booking.event_name,
+                            // Backend booking detail mungkin tdk kirim tanggal/venue, jadi kita pertahankan yg lama jika ada
+                            jadwal: prev.eventData?.jadwal || "Cek Dashboard",
+                            lokasi: prev.eventData?.lokasi || "TBA"
+                        },
+                        // Isi Data Kursi dari API (seat_labels: ["A1", "A2"])
+                        ticketData: {
+                            selectedSeats: booking.seat_labels
+                        },
+                        userData: {
+                            fullName: prev.userData?.fullName || "User",
+                            email: prev.userData?.email || "-"
+                        }
+                    }));
                 } catch (err) {
-                    console.error(err);
+                    console.error("Gagal ambil detail tiket:", err);
                 } finally {
                     setLoading(false);
                 }
             };
-            fetchBooking();
+            fetchBookingDetail();
         } else {
             setLoading(false);
         }
 
-    }, [invoiceID, state.eventData]);
+    }, [invoiceID, hasSeats]);
 
     const handleDownloadPDF = async () => {
         const element = ticketRef.current;
@@ -71,18 +96,31 @@ const ETicket = () => {
         );
     }
 
-    if (loading) return <div style={{ padding: '50px', color: 'white', textAlign: 'center' }}>Loading Ticket...</div>;
+    if (loading) return <div style={{ padding: '50px', color: 'white', textAlign: 'center' }}>Sedang Memuat Detail Tiket...</div>;
 
-    // Destructure data
+    // Destructure untuk render
     const { eventData, userData, ticketData } = ticketDetails;
 
-    const seatDisplay = ticketData?.selectedSeats
-        ? ticketData.selectedSeats.map(s => s.label).join(', ')
-        : "-";
+    // Helper Display Kursi
+    const getSeatString = () => {
+        const seats = ticketData?.selectedSeats;
+        if (!seats || seats.length === 0) return "-";
+
+        // Jika format array string ["A1", "A2"] (dari API)
+        if (typeof seats[0] === 'string') {
+            return seats.join(', ');
+        }
+
+        // Jika format array object [{label: "A1"}] (dari flow Checkout)
+        if (typeof seats[0] === 'object' && seats[0].label) {
+            return seats.map(s => s.label).join(', ');
+        }
+        return "-";
+    };
 
     return (
         <>
-            <Navbar user={currentUser} />
+            <Navbar user={{ name: userData?.fullName || "User" }} />
             <div style={{ backgroundColor: '#0B1120', minHeight: '100vh', padding: '40px 20px', color: 'white' }}>
 
                 <div style={{ maxWidth: '600px', margin: '0 auto' }}>
@@ -114,7 +152,7 @@ const ETicket = () => {
                             <div style={{ marginBottom: '25px', textAlign: 'center' }}>
                                 <p style={{ fontSize: '12px', color: '#6B7280', textTransform: 'uppercase', letterSpacing: '1px' }}>Event</p>
                                 <h2 style={{ fontSize: '24px', fontWeight: 'bold', margin: '5px 0', color: '#111827' }}>
-                                    {eventData?.nama}
+                                    {eventData?.nama || eventData?.title}
                                 </h2>
                                 <p style={{ color: '#4B5563', margin: 0, fontSize: '14px' }}>WarTawa Live Experience</p>
                             </div>
@@ -122,7 +160,10 @@ const ETicket = () => {
                             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '25px', borderBottom: '1px solid #eee', paddingBottom: '20px' }}>
                                 <div>
                                     <p style={styles.label}>Tanggal</p>
-                                    <p style={styles.value}>{eventData?.jadwal ? new Date(eventData.jadwal).toLocaleDateString() : '-'}</p>
+                                    <p style={styles.value}>
+                                        {/* Fallback tanggal jika format berbeda */}
+                                        {eventData?.jadwal || (eventData?.date ? new Date(eventData.date).toLocaleDateString() : '-')}
+                                    </p>
                                 </div>
                                 <div>
                                     <p style={styles.label}>Waktu</p>
@@ -130,7 +171,7 @@ const ETicket = () => {
                                 </div>
                                 <div>
                                     <p style={styles.label}>Lokasi</p>
-                                    <p style={styles.value}>{eventData?.lokasi}</p>
+                                    <p style={styles.value}>{eventData?.venue || eventData?.lokasi || "TBA"}</p>
                                 </div>
                             </div>
 
@@ -141,7 +182,7 @@ const ETicket = () => {
                                 </div>
                                 <div style={{ textAlign: 'right' }}>
                                     <p style={styles.label}>Kursi</p>
-                                    <p style={{ ...styles.value, fontSize: '18px', color: '#F59E0B' }}>{seatDisplay}</p>
+                                    <p style={{ ...styles.value, fontSize: '18px', color: '#F59E0B' }}>{getSeatString()}</p>
                                 </div>
                             </div>
 
