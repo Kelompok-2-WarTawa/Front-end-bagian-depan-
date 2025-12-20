@@ -113,8 +113,8 @@ npm run build
 
 ## 5. Link Deployment
 
-* **Frontend:** 
-* **Backend API:** 
+* **Frontend:** wartawa.vercel.app
+* **Backend API:** api.wartawa.online.
 
 ---
 
@@ -151,8 +151,46 @@ npm run build
 
 ## 7. Screenshot Aplikasi
 
-
-
+* **Register User**
+![alt text](<register user.png>)
+* **Login User**
+![alt text](<login-user.png>)
+* **Fitur User-Browse/Pencarian**
+![alt text](<browse.png>)
+* **Fitur User-Select Quantity, Pemilihan Seat dan Kategori**
+![alt text](<selectseat2.png>)
+* **Tampilan User-Menu Pembayaran-Personal Information**
+![alt text](<personal-info.png>)
+* **Tampilan User-Menu Pembayaran-Payment Confirmation**
+![alt text](<payment.png>)
+* **Tampilan User-Menu Pembayaran-Review & Checkout**
+![alt text](<review.png>)
+* **Tampilan User-Menu Pembayaran-Pembayaran**
+![alt text](<bayar.png>)
+* **Tampilan User-Menu Pembayaran-Muncul Pop Up**
+![alt text](<bayar2.png>)
+* **Tampilan User-E-Ticket**
+![alt text](<etiket.png>)
+* **Tampilan Profil User-Informasi Dasar**
+![alt text](<profil.png>)
+* **Tampilan Profil User-Pengaturan**
+![alt text](<profil2.png>)
+* **Tampilan Login Admin**
+![alt text](<login-admin.jpg>)
+* **Tampilan Admin-Dashboard**
+![alt text](<dashboard.png>)
+* **Tampilan Admin-Manajemen Event**
+![alt text](<manajemen.png>)
+* **Tampilan Admin-Kategori Tiket**
+![alt text](<kategori.png>)
+* **Tampilan Admin-Transaksi**
+![alt text](<transaksi.png>)
+* **Tampilan Admin-Validasi Tiket**
+![alt text](<validasi.png>)
+* **Tampilan Admin-Ekspor Data**
+![alt text](<ekspor.png>)
 ---
 
 ## 8. Link Video Presentasi
+
+https://youtu.be/C2z0OSN27kc
