@@ -91,7 +91,6 @@ const Home = () => {
     };
 
     // --- DATA UNTUK HERO SECTION ---
-    // Ambil event pertama sebagai Hero. Jika tidak ada, null.
     const heroEvent = featuredEvents.length > 0 ? featuredEvents[0] : null;
 
     return (

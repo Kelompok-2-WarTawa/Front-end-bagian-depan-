@@ -61,7 +61,7 @@ const PaymentSelect = () => {
 
     const handleSeatClick = (seatObj) => {
         if (!activePhaseId) return alert("Penjualan tiket belum dibuka.");
-        if (seatObj.is_booked) return; // Jangan klik kalau booked
+        if (seatObj.is_booked) return; 
 
         // Toggle Selection
         const isSelected = selectedSeats.some(s => s.id === seatObj.id);

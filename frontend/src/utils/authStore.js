@@ -1,5 +1,3 @@
-// src/utils/authStore.js
-
 const USERS_KEY = 'warTawaUsers';
 const SESSION_KEY = 'warTawaCurrentUser';
 
@@ -24,7 +22,7 @@ export const registerUser = (userData) => {
   // Simpan user baru dengan ROLE default 'user'
   const newUser = { 
     ...userData, 
-    role: 'user' // <--- PENTING: Penanda user biasa
+    role: 'user' // <--- Penanda user biasa
   };
 
   users.push(newUser);
@@ -90,7 +88,7 @@ export const initMasterAdmin = () => {
     }
 };
 
-// --- FITUR LAMA (TETAP DIPERTAHANKAN) ---
+
 
 // 6. Ambil User yang Sedang Login
 export const getCurrentUser = () => {

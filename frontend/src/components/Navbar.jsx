@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-// Gunakan text/placeholder untuk logo agar tidak error import gambar
 import '../App.css';
 
 const Navbar = ({ user, onSearch }) => {
@@ -16,8 +15,7 @@ const Navbar = ({ user, onSearch }) => {
         localStorage.removeItem('warTawaSession'); // Hapus Token Asli
         setIsOpen(false);
         navigate('/login');
-        // Opsional: Reload page untuk clear state global
-        // window.location.reload(); 
+      
     };
 
     const handleGoToSettings = () => {

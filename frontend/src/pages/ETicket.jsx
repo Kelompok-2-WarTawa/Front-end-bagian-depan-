@@ -25,7 +25,7 @@ const ETicket = () => {
         ticketData: state.ticketData || { selectedSeats: [] }
     });
 
-    // Cek apakah data kursi sudah ada?
+    // Cek apakah data kursi sudah ada
     const hasSeats = ticketDetails.ticketData?.selectedSeats && ticketDetails.ticketData.selectedSeats.length > 0;
 
     // Loading jika Invoice ada TAPI (Event Data kosong ATAU Kursi kosong)

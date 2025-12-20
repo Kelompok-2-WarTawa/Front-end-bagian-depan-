@@ -8,17 +8,14 @@ const Transaksi = () => {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // Karena backend belum ada endpoint dedicated /transactions list all
-                // Kita pakai data dari dashboard yang sudah ada (Top 5)
-                // Atau jika Anda sudah buat endpoint /bookings (Admin only), pakai itu.
-                // Di sini kita pakai /dashboard sebagai data source
+
                 const data = await apiRequest('/dashboard');
 
-                // Format ulang agar sesuai tabel
+              
                 const formatted = (data.recent_transactions || []).map(trx => ({
                     user: trx.user,
-                    email: 'N/A', // Backend dashboard blm return email
-                    event: 'N/A', // Backend dashboard blm return event name
+                    email: 'N/A',
+                    event: 'N/A', 
                     invoiceID: trx.booking_code,
                     amount: `Rp ${trx.amount.toLocaleString()}`,
                     status: trx.status === 'confirmed' ? 'Lunas' : trx.status,

@@ -7,7 +7,7 @@ const ManajemenEvent = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // Template Form Awal
+
     const initialFormState = {
         id: null,
         nama: '',
@@ -15,7 +15,7 @@ const ManajemenEvent = () => {
         jadwal: '',
         jam: '',
         lokasi: '',
-        image: '', // Akan berisi URL atau Base64 String
+        image: '', 
         phases: [
             { name: 'Early Bird', price: 0, quota: 0, start_date: '', end_date: '' },
             { name: 'Presale', price: 0, quota: 0, start_date: '', end_date: '' },
@@ -42,7 +42,7 @@ const ManajemenEvent = () => {
                 lokasi: ev.venue,
                 image: ev.image_url || 'https://placehold.co/400x300',
                 status: ev.status,
-                // PERBAIKAN DI SINI: Gunakan 'ev.capacity' (sesuai database), bukan 'total_capacity'
+
                 totalSeats: ev.capacity || 0,
                 phases: ev.phases
             }));

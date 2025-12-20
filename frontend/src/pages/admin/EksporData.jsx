@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { getAllTransactions } from '../../utils/transactionStore';
 import { getEvents } from '../../utils/eventStore';
 
-// --- PERBAIKAN IMPORT DI SINI ---
-import { jsPDF } from "jspdf"; // Pakai kurung kurawal { }
-import autoTable from "jspdf-autotable"; // Import sebagai variable
+
+import { jsPDF } from "jspdf"; 
+import autoTable from "jspdf-autotable"; 
 
 const EksporData = () => {
   const [events, setEvents] = useState([]);
